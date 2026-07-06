@@ -152,16 +152,7 @@ const AboutPage = () => {
               </div>
             </div>
 
-            {/* Right Content - Feature Cards - BUG-014 FIXED: Better alignment */}
-            <div className="grid grid-cols-2 gap-4">
-              {aboutData.features.slice(0, 4).map((feature) => (
-                <div key={feature.id} className="bg-white/5 backdrop-blur-sm border border-white/10 rounded-2xl p-5 hover:bg-white/10 hover:border-white/20 transition-all hover:scale-105 group">
-                  <feature.icon className="h-8 w-8 text-[#6cb84d] mb-3 group-hover:text-[#016ab7] transition-colors" />
-                  <h3 className="text-white font-semibold text-sm mb-1">{feature.title}</h3>
-                  <p className="text-white/50 text-xs leading-relaxed">{feature.description}</p>
-                </div>
-              ))}
-            </div>
+       
           </div>
         </div>
 
