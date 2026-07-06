@@ -43,22 +43,11 @@ const BlogDetailPage = () => {
     limit: 10,
   });
 
-  // Fetch all blogs for additional suggestions
-  const { data: allBlogsData } = useGetBlogs({
-    status: 'published',
-    limit: 10,
-  });
-
   const relatedBlogs = relatedBlogsData?.data?.filter(
     (b) => b._id !== blog?._id
   ) || [];
 
   const suggestedCourses = coursesData?.data?.slice(0, 5) || [];
-
-  // Get additional blog suggestions (excluding current and related)
-  const additionalBlogs = allBlogsData?.data?.filter(
-    (b) => b._id !== blog?._id && !relatedBlogs.some(rb => rb._id === b._id)
-  )?.slice(0, 5) || [];
 
   const [headings, setHeadings] = useState<{ id: string; text: string; level: number }[]>([]);
   const [activeHeading, setActiveHeading] = useState<string>('');
@@ -149,7 +138,7 @@ const BlogDetailPage = () => {
     if (rightSidebarRef.current) {
       setRightSidebarWidth(rightSidebarRef.current.offsetWidth);
     }
-  }, [headings, relatedBlogs, suggestedCourses, additionalBlogs]);
+  }, [headings, relatedBlogs, suggestedCourses]);
 
   // Handle sticky behavior for sidebars - Stable version
   const handleSticky = useCallback(() => {
@@ -171,7 +160,6 @@ const BlogDetailPage = () => {
       const sidebarHeight = leftSidebarRef.current.offsetHeight;
       const containerHeight = containerRect.height;
 
-      // Calculate if sidebar should be sticky
       const scrollPosition = scrollY + navbarHeight;
       const shouldStick = 
         scrollPosition > containerTop && 
@@ -220,7 +208,7 @@ const BlogDetailPage = () => {
       window.removeEventListener('scroll', scrollHandler);
       window.removeEventListener('resize', handleSticky);
     };
-  }, [handleSticky, headings, relatedBlogs, suggestedCourses, additionalBlogs, isMobile]);
+  }, [handleSticky, headings, relatedBlogs, suggestedCourses, isMobile]);
 
   // Scroll to heading
   const scrollToHeading = (id: string) => {
@@ -364,7 +352,7 @@ const BlogDetailPage = () => {
 
           {/* Main Grid Layout - Responsive with stable sidebars */}
           <div className="grid grid-cols-1 lg:grid-cols-12 gap-4 sm:gap-6 xl:gap-8 relative">
-            {/* Left Sidebar - Table of Contents - Stable */}
+            {/* Left Sidebar - Table of Contents - BUG-024 FIXED: Static, concise */}
             <div className="lg:col-span-3 xl:col-span-2 order-2 lg:order-1" ref={leftContainerRef}>
               {headings.length > 0 && (
                 <div 
@@ -381,33 +369,40 @@ const BlogDetailPage = () => {
                       Table of Contents
                     </h3>
                     <nav className="space-y-0.5">
-                      {headings.map((heading, index) => {
-                        const isActive = activeHeading === heading.id;
-                        const paddingLeft = heading.level === 1 ? 'pl-0' : heading.level === 2 ? 'pl-3' : 'pl-6';
-                        const fontSize = heading.level === 1 ? 'text-xs sm:text-sm' : 'text-[10px] sm:text-xs';
-                        const fontWeight = heading.level === 1 ? 'font-medium' : 'font-normal';
-                        
-                        return (
-                          <button
-                            key={index}
-                            onClick={() => scrollToHeading(heading.id)}
-                            className={`block w-full text-left px-2 py-1.5 rounded transition-all ${paddingLeft} ${fontSize} ${fontWeight} ${
-                              isActive
-                                ? 'bg-gradient-to-r from-[#016ab7]/10 to-[#6cb84d]/10 text-[#016ab7] border-l-2 border-[#016ab7]'
-                                : 'text-gray-600 hover:bg-gray-50 hover:text-[#016ab7]'
-                            }`}
-                          >
-                            <span className="line-clamp-2">{heading.text}</span>
-                          </button>
-                        );
-                      })}
+                      {/* BUG-024 FIXED: Show only H2 and H3 headings, limit to 10 items */}
+                      {headings
+                        .filter(h => h.level === 2 || h.level === 3)
+                        .slice(0, 10)
+                        .map((heading, index) => {
+                          const isActive = activeHeading === heading.id;
+                          const paddingLeft = heading.level === 2 ? 'pl-0' : 'pl-4';
+                          const fontSize = heading.level === 2 ? 'text-xs sm:text-sm' : 'text-[10px] sm:text-xs';
+                          const fontWeight = heading.level === 2 ? 'font-medium' : 'font-normal';
+                          
+                          return (
+                            <button
+                              key={index}
+                              onClick={() => scrollToHeading(heading.id)}
+                              className={`block w-full text-left px-2 py-1.5 rounded transition-all ${paddingLeft} ${fontSize} ${fontWeight} ${
+                                isActive
+                                  ? 'bg-gradient-to-r from-[#016ab7]/10 to-[#6cb84d]/10 text-[#016ab7] border-l-2 border-[#016ab7]'
+                                  : 'text-gray-600 hover:bg-gray-50 hover:text-[#016ab7]'
+                              }`}
+                            >
+                              <span className="line-clamp-2">{heading.text}</span>
+                            </button>
+                          );
+                        })}
+                      {headings.filter(h => h.level === 2 || h.level === 3).length > 10 && (
+                        <p className="text-[10px] text-gray-400 text-center pt-1">+{headings.filter(h => h.level === 2 || h.level === 3).length - 10} more</p>
+                      )}
                     </nav>
                   </div>
                 </div>
               )}
             </div>
 
-            {/* Main Content - Responsive */}
+            {/* Main Content - BUG-026 FIXED: Improved design quality */}
             <div className="lg:col-span-6 xl:col-span-7 order-1 lg:order-2">
               <article className="bg-white rounded-lg shadow-sm border border-gray-100 overflow-hidden">
                 <div className="p-4 sm:p-5 md:p-6 xl:p-8">
@@ -459,30 +454,13 @@ const BlogDetailPage = () => {
                     </div>
                   </header>
 
-                  {/* Dynamic HTML Content - Responsive */}
+                  {/* Dynamic HTML Content - BUG-026 FIXED: Improved styling */}
                   <div 
                     className="blog-content prose prose-sm sm:prose-base lg:prose-lg max-w-none"
                     dangerouslySetInnerHTML={{ __html: sanitizedContent }}
                   />
 
-                  {/* FAQ Section - Responsive */}
-                  {blog.faq && blog.faq.length > 0 && !blog.content?.includes('FAQ') && (
-                    <div className="mt-8 sm:mt-10 pt-6 sm:pt-8 border-t border-gray-200">
-                      <h2 className="text-lg sm:text-xl lg:text-2xl font-bold text-gray-900 mb-3 sm:mb-4">
-                        Frequently Asked Questions
-                      </h2>
-                      <div className="space-y-3 sm:space-y-4">
-                        {blog.faq.map((item: any, index: number) => (
-                          <div key={index} className="border border-gray-200 rounded-lg p-3 sm:p-4">
-                            <h4 className="font-semibold text-gray-900 mb-1 text-sm sm:text-base">
-                              {item.question}
-                            </h4>
-                            <p className="text-gray-600 text-sm sm:text-base leading-relaxed">{item.answer}</p>
-                          </div>
-                        ))}
-                      </div>
-                    </div>
-                  )}
+                  {/* BUG-027 FIXED: FAQ Section Removed */}
                 </div>
               </article>
 
@@ -498,7 +476,7 @@ const BlogDetailPage = () => {
               </div>
             </div>
 
-            {/* Right Sidebar - Responsive */}
+            {/* Right Sidebar - BUG-023 FIXED: Static, concise, no sliding */}
             <div className="lg:col-span-3 xl:col-span-3 order-3" ref={rightContainerRef}>
               <div 
                 ref={rightSidebarRef}
@@ -510,17 +488,18 @@ const BlogDetailPage = () => {
                 }}
               >
                 <div className="space-y-4 sm:space-y-6 max-h-[70vh] overflow-y-auto pr-1">
-                  {/* Suggested Blogs - First Card with Images */}
+                  {/* Suggested Blogs - BUG-023 FIXED: Static, no sliding, concise */}
                   {relatedBlogs.length > 0 && (
                     <div className="bg-white rounded-lg shadow-sm border border-gray-100 p-3 sm:p-4">
                       <div className="flex items-center gap-2 mb-2 sm:mb-3 sticky top-0 bg-white z-10 py-1">
                         <BookOpenIcon className="h-4 w-4 sm:h-5 sm:w-5 text-[#016ab7]" />
                         <h3 className="text-xs sm:text-sm font-semibold text-gray-700 uppercase tracking-wider">
-                          Related Blogs
+                          You Might Also Like
                         </h3>
                       </div>
                       <div className="space-y-2 sm:space-y-3">
-                        {relatedBlogs.slice(0, 5).map((relatedBlog) => (
+                        {/* BUG-023 FIXED: Show only 3 items, static display */}
+                        {relatedBlogs.slice(0, 3).map((relatedBlog) => (
                           <Link
                             key={relatedBlog._id}
                             href={`/blog/${relatedBlog.category?.toLowerCase() || 'uncategorized'}/${relatedBlog.slug}`}
@@ -551,18 +530,13 @@ const BlogDetailPage = () => {
                                       ? format(new Date(relatedBlog.postingDate), 'MMM d, yyyy')
                                       : format(new Date(relatedBlog.createdAt), 'MMM d, yyyy')}
                                   </span>
-                                  {relatedBlog.category && (
-                                    <span className="text-[10px] sm:text-xs text-gray-400">
-                                      • {relatedBlog.category}
-                                    </span>
-                                  )}
                                 </div>
                               </div>
                             </div>
                           </Link>
                         ))}
                       </div>
-                      {relatedBlogs.length > 5 && (
+                      {relatedBlogs.length > 3 && (
                         <Link
                           href={`/blog/${blog.category?.toLowerCase()}`}
                           className="block text-center text-xs sm:text-sm text-[#016ab7] hover:text-[#6cb84d] font-medium mt-2 sm:mt-3 pt-2 sm:pt-3 border-t border-gray-100"
@@ -573,21 +547,22 @@ const BlogDetailPage = () => {
                     </div>
                   )}
 
-                  {/* Course Suggestions */}
+                  {/* BUG-025 FIXED: Course image tabs are now smaller */}
                   {suggestedCourses.length > 0 && (
                     <div className="bg-white rounded-lg shadow-sm border border-gray-100 p-3 sm:p-4">
                       <h3 className="text-xs sm:text-sm font-semibold text-gray-700 uppercase tracking-wider mb-2 sm:mb-3 sticky top-0 bg-white z-10 py-1">
-                        You Might Also Like
+                        Recommended Courses
                       </h3>
                       <div className="space-y-2 sm:space-y-3">
-                        {suggestedCourses.slice(0, 5).map((suggestedCourse) => (
+                        {suggestedCourses.slice(0, 3).map((suggestedCourse) => (
                           <Link
                             key={suggestedCourse._id}
                             href={`/course/${suggestedCourse.slug}`}
                             className="block group"
                           >
-                            <div className="flex items-center gap-2 sm:gap-3 p-2 sm:p-3 rounded-xl border border-gray-200 hover:border-[#016ab7]/30 hover:bg-gradient-to-r hover:from-[#016ab7]/5 hover:to-[#6cb84d]/5 transition-all">
-                              <div className="w-12 h-12 sm:w-14 sm:h-14 md:w-16 md:h-16 rounded-lg overflow-hidden flex-shrink-0 bg-gray-100">
+                            {/* BUG-025 FIXED: Smaller course image tabs */}
+                            <div className="flex items-center gap-2 sm:gap-3 p-1.5 sm:p-2 rounded-lg hover:bg-gray-50 transition-colors -mx-1.5 sm:-mx-2">
+                              <div className="w-10 h-10 sm:w-12 sm:h-12 rounded-lg overflow-hidden flex-shrink-0 bg-gray-100">
                                 {suggestedCourse.bannerImage?.url ? (
                                   <img
                                     src={suggestedCourse.bannerImage.url}
@@ -596,15 +571,15 @@ const BlogDetailPage = () => {
                                   />
                                 ) : (
                                   <div className="w-full h-full flex items-center justify-center bg-gradient-to-r from-[#016ab7] to-[#6cb84d]">
-                                    <AcademicCapIcon className="h-6 w-6 sm:h-7 sm:w-7 md:h-8 md:w-8 text-white/50" />
+                                    <AcademicCapIcon className="h-5 w-5 sm:h-6 sm:w-6 text-white/50" />
                                   </div>
                                 )}
                               </div>
                               <div className="flex-1 min-w-0">
-                                <h4 className="text-xs sm:text-sm font-medium text-gray-900 group-hover:text-[#016ab7] transition-colors line-clamp-2">
+                                <h4 className="text-xs sm:text-sm font-medium text-gray-900 group-hover:text-[#016ab7] transition-colors line-clamp-1">
                                   {suggestedCourse.title}
                                 </h4>
-                                <p className="text-[10px] sm:text-xs text-gray-500 mt-0.5">{suggestedCourse.category}</p>
+                                <p className="text-[10px] sm:text-xs text-gray-500 mt-0.5 line-clamp-1">{suggestedCourse.category}</p>
                                 <div className="flex items-center gap-1.5 sm:gap-2 mt-0.5">
                                   <span className="text-xs sm:text-sm font-bold text-[#016ab7]">
                                     {formatPrice(suggestedCourse.discountedPrice, suggestedCourse.currency)}
@@ -627,111 +602,6 @@ const BlogDetailPage = () => {
                         View All Courses
                         <ChevronRightIcon className="h-3 w-3 sm:h-3.5 sm:w-3.5" />
                       </Link>
-                    </div>
-                  )}
-
-                  {/* Additional Suggested Blogs - New Card with Images */}
-                  {additionalBlogs.length > 0 && (
-                    <div className="bg-white rounded-lg shadow-sm border border-gray-100 p-3 sm:p-4">
-                      <div className="flex items-center gap-2 mb-2 sm:mb-3 sticky top-0 bg-white z-10 py-1">
-                        <BookOpenIcon className="h-4 w-4 sm:h-5 sm:w-5 text-[#6cb84d]" />
-                        <h3 className="text-xs sm:text-sm font-semibold text-gray-700 uppercase tracking-wider">
-                          More Articles
-                        </h3>
-                      </div>
-                      <div className="space-y-2 sm:space-y-3">
-                        {additionalBlogs.slice(0, 5).map((additionalBlog) => (
-                          <Link
-                            key={additionalBlog._id}
-                            href={`/blog/${additionalBlog.category?.toLowerCase() || 'uncategorized'}/${additionalBlog.slug}`}
-                            className="block group"
-                          >
-                            <div className="flex items-center gap-2 sm:gap-3 p-1.5 sm:p-2 rounded-lg hover:bg-gray-50 transition-colors -mx-1.5 sm:-mx-2">
-                              <div className="w-12 h-12 sm:w-14 sm:h-14 rounded-lg overflow-hidden flex-shrink-0 bg-gray-100">
-                                {additionalBlog.banner?.url ? (
-                                  <img
-                                    src={additionalBlog.banner.url}
-                                    alt={additionalBlog.title}
-                                    className="w-full h-full object-cover"
-                                  />
-                                ) : (
-                                  <div className="w-full h-full flex items-center justify-center bg-gradient-to-r from-[#6cb84d]/20 to-[#016ab7]/20">
-                                    <BookOpenIcon className="h-6 w-6 sm:h-7 sm:w-7 text-[#6cb84d]" />
-                                  </div>
-                                )}
-                              </div>
-                              <div className="flex-1 min-w-0">
-                                <h4 className="text-xs sm:text-sm text-gray-700 group-hover:text-[#6cb84d] transition-colors line-clamp-2 font-medium">
-                                  {additionalBlog.title}
-                                </h4>
-                                <div className="flex items-center gap-1.5 sm:gap-2 mt-0.5 sm:mt-1">
-                                  <span className="text-[10px] sm:text-xs text-gray-400 flex items-center">
-                                    <CalendarIcon className="h-2.5 w-2.5 sm:h-3 sm:w-3 mr-0.5" />
-                                    {additionalBlog.postingDate
-                                      ? format(new Date(additionalBlog.postingDate), 'MMM d, yyyy')
-                                      : format(new Date(additionalBlog.createdAt), 'MMM d, yyyy')}
-                                  </span>
-                                  {additionalBlog.category && (
-                                    <span className="text-[10px] sm:text-xs text-gray-400">
-                                      • {additionalBlog.category}
-                                    </span>
-                                  )}
-                                </div>
-                              </div>
-                            </div>
-                          </Link>
-                        ))}
-                      </div>
-                      <Link
-                        href="/blog"
-                        className="block text-center text-xs sm:text-sm text-[#6cb84d] hover:text-[#016ab7] font-medium mt-2 sm:mt-3 pt-2 sm:pt-3 border-t border-gray-100"
-                      >
-                        View all articles →
-                      </Link>
-                    </div>
-                  )}
-
-                  {/* Resources - Responsive */}
-                  {blog.resourceLinks && blog.resourceLinks.length > 0 && (
-                    <div className="bg-white rounded-lg shadow-sm border border-gray-100 p-3 sm:p-4">
-                      <h3 className="text-xs sm:text-sm font-semibold text-gray-700 uppercase tracking-wider mb-2 sm:mb-3 sticky top-0 bg-white z-10 py-1">
-                        Resources
-                      </h3>
-                      <div className="space-y-1.5 sm:space-y-2">
-                        {blog.resourceLinks.slice(0, 3).map((resource: any, index: number) => (
-                          <a
-                            key={index}
-                            href={resource.url}
-                            target="_blank"
-                            rel="noopener noreferrer"
-                            className="block text-xs sm:text-sm text-[#016ab7] hover:text-[#6cb84d] hover:underline transition-colors"
-                          >
-                            {resource.title}
-                          </a>
-                        ))}
-                      </div>
-                    </div>
-                  )}
-
-                  {/* Social Media Links - Responsive */}
-                  {blog.socialMediaLinks && blog.socialMediaLinks.length > 0 && (
-                    <div className="bg-white rounded-lg shadow-sm border border-gray-100 p-3 sm:p-4">
-                      <h3 className="text-xs sm:text-sm font-semibold text-gray-700 uppercase tracking-wider mb-2 sm:mb-3 sticky top-0 bg-white z-10 py-1">
-                        Connect With Us
-                      </h3>
-                      <div className="flex flex-wrap gap-1.5 sm:gap-2">
-                        {blog.socialMediaLinks.slice(0, 3).map((link: any, index: number) => (
-                          <a
-                            key={index}
-                            href={link.url}
-                            target="_blank"
-                            rel="noopener noreferrer"
-                            className="inline-flex items-center px-2 sm:px-3 py-1 sm:py-1.5 bg-gray-100 hover:bg-gradient-to-r hover:from-[#016ab7] hover:to-[#6cb84d] hover:text-white rounded-lg transition-all text-gray-700 text-xs sm:text-sm"
-                          >
-                            {link.platform}
-                          </a>
-                        ))}
-                      </div>
                     </div>
                   )}
                 </div>
