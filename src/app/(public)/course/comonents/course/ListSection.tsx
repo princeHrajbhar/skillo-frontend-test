@@ -127,23 +127,25 @@ const CourseCard: React.FC<{
       className="block h-full group"
     >
       <div className="bg-white rounded-2xl overflow-hidden shadow-sm hover:shadow-xl transition-all duration-300 h-full border border-gray-100 hover:border-[#016ab7]/30 flex flex-col">
-        {/* Image */}
-        <div className="relative h-48 overflow-hidden bg-gray-100 flex-shrink-0">
+        {/* Image Container - Fixed aspect ratio with proper object fit */}
+        <div className="relative w-full pt-[56.25%] bg-gray-100 flex-shrink-0 overflow-hidden">
           {course.bannerImage?.url ? (
             <Image
               src={course.bannerImage.url}
               alt={course.title}
               fill
+              sizes="(max-width: 640px) 100vw, (max-width: 768px) 50vw, (max-width: 1024px) 33vw, 25vw"
               className="object-cover group-hover:scale-105 transition-transform duration-500"
+              priority={false}
             />
           ) : (
-            <div className="w-full h-full bg-gradient-to-br from-[#016ab7] to-[#6cb84d] flex items-center justify-center">
+            <div className="absolute inset-0 bg-gradient-to-br from-[#016ab7] to-[#6cb84d] flex items-center justify-center">
               <BookOpen className="h-12 w-12 text-white/50" />
             </div>
           )}
 
           {/* Level Badge */}
-          <div className="absolute top-3 left-3">
+          <div className="absolute top-3 left-3 z-10">
             <span className="bg-white/90 backdrop-blur-sm text-[#016ab7] text-xs font-medium px-3 py-1 rounded-full shadow-sm">
               {getLevel()}
             </span>
@@ -152,7 +154,7 @@ const CourseCard: React.FC<{
           {/* Wishlist Button */}
           <button
             onClick={(e) => onWishlistToggle(course._id, e)}
-            className="absolute top-3 right-3 p-2 bg-white/90 backdrop-blur-sm rounded-full hover:bg-white transition-colors shadow-sm"
+            className="absolute top-3 right-3 z-10 p-2 bg-white/90 backdrop-blur-sm rounded-full hover:bg-white transition-colors shadow-sm"
           >
             <Heart
               className={`h-4 w-4 transition-colors ${
@@ -163,24 +165,24 @@ const CourseCard: React.FC<{
 
           {/* Discount Badge */}
           {discount > 0 && (
-            <div className="absolute bottom-3 right-3 bg-gradient-to-r from-[#016ab7] to-[#6cb84d] text-white text-xs font-bold px-3 py-1 rounded-full shadow-lg">
+            <div className="absolute bottom-3 right-3 z-10 bg-gradient-to-r from-[#016ab7] to-[#6cb84d] text-white text-xs font-bold px-3 py-1 rounded-full shadow-lg">
               {discount}% OFF
             </div>
           )}
         </div>
 
         {/* Content */}
-        <div className="p-5 flex flex-col flex-1">
+        <div className="p-4 sm:p-5 flex flex-col flex-1">
           {/* Category */}
-          <span className="text-xs font-medium text-[#016ab7] mb-1">
+          <span className="text-xs font-medium text-[#016ab7] mb-1 truncate">
             {course.category}
           </span>
 
-          <h3 className="text-base font-bold text-gray-900 group-hover:text-[#016ab7] transition-colors line-clamp-2 mb-1.5">
+          <h3 className="text-sm sm:text-base font-bold text-gray-900 group-hover:text-[#016ab7] transition-colors line-clamp-2 mb-1.5">
             {course.title}
           </h3>
 
-          <p className="text-sm text-gray-500 line-clamp-2 mb-3 flex-1">
+          <p className="text-xs sm:text-sm text-gray-500 line-clamp-2 mb-3 flex-1">
             {course.shortDescription}
           </p>
 
@@ -190,7 +192,7 @@ const CourseCard: React.FC<{
               <Star className="h-3.5 w-3.5 fill-yellow-400 text-yellow-400" />
               <span className="text-sm font-semibold text-gray-700 ml-1">{rating}</span>
             </div>
-            <span className="text-xs text-gray-400">({reviews.toLocaleString()} reviews)</span>
+            <span className="text-xs text-gray-400 truncate">({reviews.toLocaleString()} reviews)</span>
           </div>
 
           {/* Skills Tags */}
@@ -199,38 +201,38 @@ const CourseCard: React.FC<{
               {course.keywords.slice(0, 3).map((keyword) => (
                 <span
                   key={keyword}
-                  className="bg-gray-100 text-gray-600 text-[10px] px-2 py-0.5 rounded-full"
+                  className="bg-gray-100 text-gray-600 text-[10px] px-2 py-0.5 rounded-full truncate max-w-[80px]"
                 >
                   {keyword}
                 </span>
               ))}
               {course.keywords.length > 3 && (
-                <span className="text-gray-400 text-[10px]">+{course.keywords.length - 3}</span>
+                <span className="text-gray-400 text-[10px] flex-shrink-0">+{course.keywords.length - 3}</span>
               )}
             </div>
           )}
 
           {/* Duration */}
           <div className="flex items-center gap-2 text-xs text-gray-400 mb-3">
-            <Clock className="h-3.5 w-3.5" />
-            <span>{getDuration()} • Self-paced</span>
+            <Clock className="h-3.5 w-3.5 flex-shrink-0" />
+            <span className="truncate">{getDuration()} • Self-paced</span>
           </div>
 
           {/* Price */}
-          <div className="flex items-center justify-between">
-            <div className="flex items-center gap-2">
-              <span className="text-lg font-bold text-[#016ab7]">
+          <div className="flex items-center justify-between gap-2">
+            <div className="flex items-center gap-2 min-w-0">
+              <span className="text-base sm:text-lg font-bold text-[#016ab7] whitespace-nowrap">
                 {formatPrice(course.discountedPrice, course.currency)}
               </span>
               {course.discountedPrice < course.price && (
-                <span className="text-sm text-gray-400 line-through">
+                <span className="text-xs sm:text-sm text-gray-400 line-through whitespace-nowrap">
                   {formatPrice(course.price, course.currency)}
                 </span>
               )}
             </div>
-            <button className="px-4 py-2 bg-gradient-to-r from-[#016ab7] to-[#6cb84d] hover:shadow-lg hover:shadow-[#016ab7]/25 text-white rounded-xl text-sm font-medium transition-all hover:scale-105 flex items-center gap-1.5">
-              <ShoppingBag className="h-3.5 w-3.5" />
-              Enroll
+            <button className="flex-shrink-0 px-3 sm:px-4 py-1.5 sm:py-2 bg-gradient-to-r from-[#016ab7] to-[#6cb84d] hover:shadow-lg hover:shadow-[#016ab7]/25 text-white rounded-xl text-xs sm:text-sm font-medium transition-all hover:scale-105 flex items-center gap-1.5">
+              <ShoppingBag className="h-3 w-3 sm:h-3.5 sm:w-3.5" />
+              <span className="hidden xs:inline">Enroll</span>
             </button>
           </div>
         </div>
@@ -385,7 +387,7 @@ export default function CourseDiscoveryPage() {
 
   if (isLoading) {
     return (
-      <div className="min-h-screen bg-gray-50 py-12">
+      <div className="min-h-screen bg-gray-50 py-8 sm:py-12">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 space-y-8">
           {/* Search Bar Skeleton */}
           <div className="h-14 bg-white rounded-2xl shadow-sm border border-gray-200 animate-pulse"></div>
@@ -398,11 +400,11 @@ export default function CourseDiscoveryPage() {
           </div>
           
           {/* Course Cards Skeleton */}
-          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4 sm:gap-6">
             {[1, 2, 3, 4, 5, 6, 7, 8].map((i) => (
               <div key={i} className="bg-white rounded-2xl overflow-hidden shadow-sm animate-pulse">
-                <div className="h-48 bg-gray-200"></div>
-                <div className="p-5 space-y-3">
+                <div className="w-full pt-[56.25%] bg-gray-200"></div>
+                <div className="p-4 sm:p-5 space-y-3">
                   <div className="h-4 bg-gray-200 rounded w-1/4"></div>
                   <div className="h-6 bg-gray-200 rounded w-3/4"></div>
                   <div className="h-4 bg-gray-200 rounded w-full"></div>
@@ -422,7 +424,7 @@ export default function CourseDiscoveryPage() {
 
   if (error) {
     return (
-      <div className="min-h-screen flex items-center justify-center bg-gray-50">
+      <div className="min-h-screen flex items-center justify-center bg-gray-50 p-4">
         <div className="text-center max-w-md">
           <div className="text-6xl mb-4">😕</div>
           <h2 className="text-2xl font-semibold text-gray-800 mb-2">Something went wrong</h2>
@@ -443,28 +445,28 @@ export default function CourseDiscoveryPage() {
   // ============================================
 
   return (
-    <div className="min-h-screen bg-gray-50 py-8">
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+    <div className="min-h-screen bg-gray-50 py-4 sm:py-8">
+      <div className="max-w-7xl mx-auto px-3 sm:px-6 lg:px-8">
         
         {/* ============================================
             SEARCH BAR
             ============================================ */}
-        <div className="relative max-w-2xl mx-auto mb-8">
+        <div className="relative max-w-2xl mx-auto mb-6 sm:mb-8">
           <div className="relative flex items-center bg-white border border-gray-200 rounded-2xl shadow-sm focus-within:ring-2 focus-within:ring-[#016ab7] focus-within:border-transparent transition-all">
-            <Search className="absolute left-4 h-5 w-5 text-gray-400" />
+            <Search className="absolute left-3 sm:left-4 h-4 w-4 sm:h-5 sm:w-5 text-gray-400" />
             <input
               type="text"
               placeholder="Search courses, categories, or skills..."
               value={searchQuery}
               onChange={handleSearch}
-              className="w-full pl-12 pr-4 py-4 bg-transparent text-gray-900 placeholder:text-gray-400 focus:outline-none text-base rounded-2xl"
+              className="w-full pl-9 sm:pl-12 pr-8 sm:pr-12 py-3 sm:py-4 bg-transparent text-gray-900 placeholder:text-gray-400 focus:outline-none text-sm sm:text-base rounded-2xl"
             />
             {searchQuery && (
               <button
                 onClick={clearSearch}
-                className="absolute right-4 p-1 hover:bg-gray-100 rounded-full transition-colors"
+                className="absolute right-3 sm:right-4 p-1 hover:bg-gray-100 rounded-full transition-colors"
               >
-                <X className="h-4 w-4 text-gray-400" />
+                <X className="h-3 w-3 sm:h-4 sm:w-4 text-gray-400" />
               </button>
             )}
           </div>
@@ -474,13 +476,13 @@ export default function CourseDiscoveryPage() {
             SEARCH RESULTS
             ============================================ */}
         {isSearching && searchResults.length > 0 && (
-          <div className="bg-white rounded-2xl shadow-sm border border-gray-200 p-6 mb-8">
-            <div className="flex items-center justify-between mb-6">
+          <div className="bg-white rounded-2xl shadow-sm border border-gray-200 p-4 sm:p-6 mb-6 sm:mb-8">
+            <div className="flex flex-col sm:flex-row sm:items-center justify-between mb-4 sm:mb-6 gap-2">
               <div>
-                <h2 className="text-xl font-bold text-gray-900">
+                <h2 className="text-lg sm:text-xl font-bold text-gray-900">
                   Search Results for "{searchQuery}"
                 </h2>
-                <p className="text-sm text-gray-500">{searchResults.length} courses found</p>
+                <p className="text-xs sm:text-sm text-gray-500">{searchResults.length} courses found</p>
               </div>
               <button
                 onClick={clearSearch}
@@ -489,7 +491,7 @@ export default function CourseDiscoveryPage() {
                 Clear Search
               </button>
             </div>
-            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4">
+            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4 sm:gap-5">
               {searchResults.slice(0, 8).map((course) => (
                 <CourseCard
                   key={course._id}
@@ -503,9 +505,9 @@ export default function CourseDiscoveryPage() {
         )}
 
         {isSearching && searchResults.length === 0 && (
-          <div className="text-center bg-white rounded-2xl shadow-sm border border-gray-200 p-12 mb-8">
+          <div className="text-center bg-white rounded-2xl shadow-sm border border-gray-200 p-8 sm:p-12 mb-6 sm:mb-8">
             <div className="text-6xl mb-4">🔍</div>
-            <h3 className="text-2xl font-semibold text-gray-800 mb-2">No courses found</h3>
+            <h3 className="text-xl sm:text-2xl font-semibold text-gray-800 mb-2">No courses found</h3>
             <p className="text-gray-500 mb-4">Try adjusting your search terms</p>
             <button
               onClick={clearSearch}
@@ -520,22 +522,22 @@ export default function CourseDiscoveryPage() {
             POPULAR SKILLS
             ============================================ */}
         {!isSearching && popularSkills.length > 0 && (
-          <div className="mb-8">
-            <div className="flex items-center justify-between mb-4">
+          <div className="mb-6 sm:mb-8">
+            <div className="flex items-center justify-between mb-3 sm:mb-4">
               <div>
-                <h2 className="text-2xl font-bold text-gray-900">Popular Skills</h2>
-                <p className="text-sm text-gray-500">Most in-demand skills right now</p>
+                <h2 className="text-xl sm:text-2xl font-bold text-gray-900">Popular Skills</h2>
+                <p className="text-xs sm:text-sm text-gray-500">Most in-demand skills right now</p>
               </div>
             </div>
-            <div className="flex flex-wrap gap-3">
+            <div className="flex flex-wrap gap-2 sm:gap-3">
               {popularSkills.map((skill) => (
                 <button
                   key={skill}
                   onClick={() => handleSkillClick(skill)}
-                  className="group flex items-center gap-2 px-4 py-2 bg-white border border-gray-200 rounded-xl hover:border-[#016ab7] hover:shadow-md transition-all duration-300"
+                  className="group flex items-center gap-1.5 sm:gap-2 px-3 sm:px-4 py-1.5 sm:py-2 bg-white border border-gray-200 rounded-xl hover:border-[#016ab7] hover:shadow-md transition-all duration-300 text-sm"
                 >
-                  <Tag className="h-4 w-4 text-gray-400 group-hover:text-[#016ab7] transition-colors" />
-                  <span className="text-sm font-medium text-gray-700 group-hover:text-[#016ab7] transition-colors">
+                  <Tag className="h-3 w-3 sm:h-4 sm:w-4 text-gray-400 group-hover:text-[#016ab7] transition-colors" />
+                  <span className="text-xs sm:text-sm font-medium text-gray-700 group-hover:text-[#016ab7] transition-colors">
                     {skill}
                   </span>
                 </button>
@@ -548,19 +550,19 @@ export default function CourseDiscoveryPage() {
             RECOMMENDED COURSES
             ============================================ */}
         {!isSearching && recommendedCourses.length > 0 && (
-          <div className="mb-8">
-            <div className="flex items-center justify-between mb-4">
+          <div className="mb-6 sm:mb-8">
+            <div className="flex items-center justify-between mb-3 sm:mb-4">
               <div>
-                <h2 className="text-2xl font-bold text-gray-900">Recommended for You</h2>
-                <p className="text-sm text-gray-500">Handpicked courses based on popularity</p>
+                <h2 className="text-xl sm:text-2xl font-bold text-gray-900">Recommended for You</h2>
+                <p className="text-xs sm:text-sm text-gray-500">Handpicked courses based on popularity</p>
               </div>
             </div>
             <div className="relative">
-              <div className="flex gap-4 md:gap-5 overflow-x-auto scroll-smooth snap-x snap-mandatory pb-4 hide-scrollbar">
+              <div className="flex gap-3 sm:gap-4 md:gap-5 overflow-x-auto scroll-smooth snap-x snap-mandatory pb-4 hide-scrollbar">
                 {recommendedCourses.map((course) => (
                   <div
                     key={course._id}
-                    className="flex-shrink-0 w-[280px] sm:w-[300px] md:w-[280px] lg:w-[300px] xl:w-[320px] snap-start"
+                    className="flex-shrink-0 w-[260px] sm:w-[280px] md:w-[300px] lg:w-[320px] snap-start"
                   >
                     <CourseCard
                       course={course}
@@ -586,13 +588,13 @@ export default function CourseDiscoveryPage() {
               <div
                 key={category}
                 id={`category-${category}`}
-                className="mb-8 scroll-mt-20"
+                className="mb-6 sm:mb-8 scroll-mt-20"
               >
                 {/* Category Header */}
-                <div className="flex items-center justify-between mb-4">
+                <div className="flex flex-col sm:flex-row sm:items-center justify-between mb-3 sm:mb-4 gap-2">
                   <div>
-                    <h2 className="text-2xl font-bold text-gray-900">{category}</h2>
-                    <p className="text-sm text-gray-500">{categoryCourses.length} courses available</p>
+                    <h2 className="text-xl sm:text-2xl font-bold text-gray-900">{category}</h2>
+                    <p className="text-xs sm:text-sm text-gray-500">{categoryCourses.length} courses available</p>
                   </div>
                   <Link
                     href={`/course/category/${category.toLowerCase().replace(/\s+/g, '-')}`}
@@ -608,9 +610,9 @@ export default function CourseDiscoveryPage() {
                   {/* Left Navigation Button */}
                   <button
                     onClick={() => scrollCategory(category, 'left')}
-                    className="absolute left-0 top-1/2 -translate-y-1/2 z-10 bg-white shadow-lg rounded-full p-2.5 border border-gray-200 text-gray-700 hover:bg-gradient-to-r hover:from-[#016ab7] hover:to-[#6cb84d] hover:text-white transition-all -translate-x-4 opacity-0 group-hover:opacity-100 focus:opacity-100"
+                    className="absolute left-0 top-1/2 -translate-y-1/2 z-10 bg-white shadow-lg rounded-full p-1.5 sm:p-2.5 border border-gray-200 text-gray-700 hover:bg-gradient-to-r hover:from-[#016ab7] hover:to-[#6cb84d] hover:text-white transition-all -translate-x-2 sm:-translate-x-4 opacity-0 group-hover:opacity-100 focus:opacity-100 hidden sm:block"
                   >
-                    <ChevronLeft className="h-5 w-5" />
+                    <ChevronLeft className="h-4 w-4 sm:h-5 sm:w-5" />
                   </button>
 
                   {/* Scroll Container */}
@@ -618,12 +620,12 @@ export default function CourseDiscoveryPage() {
                     ref={(el) => {
                       categoryRefs.current[category] = el;
                     }}
-                    className="flex gap-4 md:gap-5 overflow-x-auto scroll-smooth snap-x snap-mandatory pb-4 hide-scrollbar"
+                    className="flex gap-3 sm:gap-4 md:gap-5 overflow-x-auto scroll-smooth snap-x snap-mandatory pb-4 hide-scrollbar"
                   >
                     {categoryCourses.map((course) => (
                       <div
                         key={course._id}
-                        className="flex-shrink-0 w-[280px] sm:w-[300px] md:w-[280px] lg:w-[300px] xl:w-[320px] snap-start"
+                        className="flex-shrink-0 w-[260px] sm:w-[280px] md:w-[300px] lg:w-[320px] snap-start"
                       >
                         <CourseCard
                           course={course}
@@ -637,9 +639,9 @@ export default function CourseDiscoveryPage() {
                   {/* Right Navigation Button */}
                   <button
                     onClick={() => scrollCategory(category, 'right')}
-                    className="absolute right-0 top-1/2 -translate-y-1/2 z-10 bg-white shadow-lg rounded-full p-2.5 border border-gray-200 text-gray-700 hover:bg-gradient-to-r hover:from-[#016ab7] hover:to-[#6cb84d] hover:text-white transition-all translate-x-4 opacity-0 group-hover:opacity-100 focus:opacity-100"
+                    className="absolute right-0 top-1/2 -translate-y-1/2 z-10 bg-white shadow-lg rounded-full p-1.5 sm:p-2.5 border border-gray-200 text-gray-700 hover:bg-gradient-to-r hover:from-[#016ab7] hover:to-[#6cb84d] hover:text-white transition-all translate-x-2 sm:translate-x-4 opacity-0 group-hover:opacity-100 focus:opacity-100 hidden sm:block"
                   >
-                    <ChevronRight className="h-5 w-5" />
+                    <ChevronRight className="h-4 w-4 sm:h-5 sm:w-5" />
                   </button>
                 </div>
               </div>
@@ -650,10 +652,10 @@ export default function CourseDiscoveryPage() {
             EMPTY STATE
             ============================================ */}
         {!isLoading && courses.length === 0 && (
-          <div className="text-center bg-white rounded-3xl shadow-sm border border-gray-200 p-16">
+          <div className="text-center bg-white rounded-3xl shadow-sm border border-gray-200 p-8 sm:p-16">
             <div className="text-7xl mb-6">📚</div>
-            <h3 className="text-3xl font-bold text-gray-900 mb-3">No Courses Available</h3>
-            <p className="text-gray-500 max-w-md mx-auto">
+            <h3 className="text-2xl sm:text-3xl font-bold text-gray-900 mb-3">No Courses Available</h3>
+            <p className="text-gray-500 max-w-md mx-auto text-sm sm:text-base">
               We're currently preparing new courses for you. Please check back later.
             </p>
           </div>
