@@ -341,7 +341,7 @@ export default function CourseListing() {
                     viewMode === 'list' ? 'flex gap-6 p-4' : ''
                   }`}
                 >
-                  {/* Image */}
+                  {/* Image - Badges repositioned to avoid overlap */}
                   <div className={`relative ${viewMode === 'list' ? 'w-64 flex-shrink-0' : ''}`}>
                     <img
                       src={imageUrl}
@@ -351,24 +351,26 @@ export default function CourseListing() {
                       }`}
                       loading="lazy"
                     />
+                    {/* Discount/Popular Badge - Top Left */}
                     {hasDiscount && (
-                      <div className="absolute left-3 top-3 rounded-full bg-red-500 px-3 py-1 text-[11px] font-semibold text-white">
+                      <div className="absolute left-2 top-2 rounded-full bg-red-500 px-2.5 py-0.5 text-[10px] font-semibold text-white shadow-md">
                         SAVE {discountPercentage}%
                       </div>
                     )}
                     {!hasDiscount && course.status === 'active' && (
-                      <div className="absolute left-3 top-3 rounded-full bg-[#6cb84d] px-3 py-1 text-[11px] font-semibold text-white">
+                      <div className="absolute left-2 top-2 rounded-full bg-[#6cb84d] px-2.5 py-0.5 text-[10px] font-semibold text-white shadow-md">
                         POPULAR
                       </div>
                     )}
                     {course.status === 'upcoming' && (
-                      <div className="absolute left-3 top-3 rounded-full bg-amber-500 px-3 py-1 text-[11px] font-semibold text-white">
+                      <div className="absolute left-2 top-2 rounded-full bg-amber-500 px-2.5 py-0.5 text-[10px] font-semibold text-white shadow-md">
                         UPCOMING
                       </div>
                     )}
-                    <div className="absolute right-3 top-3 flex items-center gap-1 rounded-full bg-white/95 px-2 py-1 shadow backdrop-blur-sm">
-                      <Star size={12} className="fill-yellow-400 text-yellow-400" />
-                      <span className="text-xs font-semibold">
+                    {/* Rating Badge - Top Right, moved to corner */}
+                    <div className="absolute right-2 top-2 flex items-center gap-0.5 rounded-full bg-white/95 px-1.5 py-0.5 shadow-md backdrop-blur-sm">
+                      <Star size={10} className="fill-yellow-400 text-yellow-400" />
+                      <span className="text-[10px] font-semibold text-slate-700">
                         {rating}
                       </span>
                     </div>
@@ -443,7 +445,7 @@ export default function CourseListing() {
                       )}
                     </div>
 
-                    {/* Updated Buttons with Green-Blue Gradient */}
+                    {/* Buttons - Changed "Add to Cart" to "Buy Now" */}
                     <div className={`grid gap-2 ${
                       viewMode === 'grid' ? 'mt-4 grid-cols-2' : 'mt-3 flex'
                     }`}>
@@ -460,7 +462,7 @@ export default function CourseListing() {
                         }}
                         className="rounded-lg border-2 border-[#016ab7] bg-transparent px-4 py-2.5 text-sm font-medium text-[#016ab7] transition-all hover:bg-gradient-to-r hover:from-[#016ab7] hover:to-[#6cb84d] hover:text-white hover:shadow-lg hover:shadow-[#016ab7]/25 hover:border-transparent"
                       >
-                        Add to Cart
+                        Buy Now
                       </button>
                     </div>
                   </div>

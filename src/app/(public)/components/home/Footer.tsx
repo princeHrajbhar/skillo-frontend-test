@@ -6,41 +6,30 @@ import {
   FaInstagram,
   FaLinkedinIn,
   FaDiscord,
+  FaGooglePlay,
+  FaApple,
 } from "react-icons/fa";
 import { ArrowRight } from "lucide-react";
 import Image from "next/image";
 
 const footerLinks = {
-  "Upcoming Courses": [
-    { name: "UI/UX Design", href: "/course/ui-ux-design" },
-    { name: "Digital Marketing", href: "/course/digital-marketing" },
-    { name: "Data Analytics", href: "/course/data-analytics" },
-    {
-      name: "AI Generalist to Specialist",
-      href: "/course/ai-generalist-to-specialist",
-    },
-    {
-      name: "AI+ML Automation Mastery",
-      href: "/course/ai-ml-automation-mastery",
-    },
-    { name: "Product Management", href: "/course/product-management" },
+  Company: [
+    { name: "About Us", href: "/about-us" },
+    { name: "Blog", href: "/blog" },
+    { name: "Media", href: "/media" },
+    { name: "Careers", href: "/careers" },
+    { name: "Contact Us", href: "/contact-us" },
+  ],
+  "Top Categories": [
+    { name: "Achievo", href: "/achievo" },
+    { name: "Skillo", href: "/" },
   ],
   "Useful Links": [
     { name: "FAQs", href: "/faqs" },
     { name: "Privacy Policy", href: "/privacy-policy" },
     { name: "Terms & Conditions", href: "/terms-conditions" },
-    {
-      name: "Cancellation and Refund Policy",
-      href: "/cancellation-and-refund-policy",
-    },
-    { name: "Shipping and Exchange Policy", href: "/shipping-exchange-policy" },
-  ],
-  Company: [
-    { name: "About Us", href: "/about-us" },
-    { name: "Careers", href: "/careers" },
-    { name: "Blog", href: "/blog" },
-    { name: "Contact Us", href: "/contact-us" },
-    { name: "Media", href: "/media" },
+    { name: "Refund Policy", href: "/refund-policy" },
+    { name: "Shipping Policy", href: "/shipping-policy" },
   ],
 };
 
@@ -63,6 +52,11 @@ const socialLinks = [
   },
 ];
 
+const appLinks = [
+  { icon: FaGooglePlay, label: "Get it on Google Play", href: "#" },
+  { icon: FaApple, label: "Download on the App Store", href: "#" },
+];
+
 export default function Footer() {
   const [email, setEmail] = useState("");
   const [isSubscribed, setIsSubscribed] = useState(false);
@@ -79,10 +73,10 @@ export default function Footer() {
   };
 
   return (
-    <footer className="bg-white border-t border-slate-100">
+    <footer className="bg-[#f8fafc] border-t border-slate-200">
       <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8 pt-14 pb-10">
-        {/* Logo at top left inside footer - Fixed height issue */}
-        <div className="mb-6">
+        {/* Logo */}
+        <div className="mb-8">
           <Link href="/" className="inline-block">
             <Image
               src="/skillo.png"
@@ -97,48 +91,46 @@ export default function Footer() {
 
         <div className="grid gap-10 md:grid-cols-2 lg:grid-cols-12">
           {/* Brand & Corporate Metadata Column */}
-          <div className="lg:col-span-4 space-y-4">
-            <div>
-              <p className="text-sm font-medium italic text-slate-800 leading-snug">
-                "For Bharat, Of Bharat, By Bharat."
-              </p>
-              <p className="text-sm font-semibold text-slate-900 leading-snug">
-                India's Own Learning Revolution.
-              </p>
-            </div>
-            <div className="text-xs text-slate-600 leading-relaxed space-y-1">
+          <div className="lg:col-span-3 space-y-4">
+            <div className="text-xs text-slate-600 leading-relaxed space-y-2">
               <p>
-                <span className="font-bold text-slate-800">
-                  Corporate Office:
-                </span>
-                <br /> 10th floor, Tower C, Bhutani Cyber Park, Sec 62, Noida,
+                <span className="font-bold text-slate-800">Helpline:</span>
+                <br />
+                <a
+                  href="tel:+919910899060"
+                  className="hover:underline hover:text-brand-start"
+                >
+                  +91 99108 99060
+                </a>
+              </p>
+              <p>
+                <span className="font-bold text-slate-800">Support:</span>
+                <br />
+                <a
+                  href="mailto:support@shikshanation.com"
+                  className="hover:underline hover:text-brand-start"
+                >
+                  support@shikshanation.com
+                </a>
+              </p>
+              <p>
+                <span className="font-bold text-slate-800">Headquarters:</span>
+                <br />
+                C-56 A/12, II Floor Technopolis IT Hub,
+                <br />
+                Opposite Stellar IT Park, C Block, Phase 2,
+                <br />
+                Industrial Area, Sector 62, Noida,
+                <br />
                 Uttar Pradesh 201309
-              </p>
-              <p className="pt-2">
-                <span className="font-bold text-slate-800">Call: </span>
-                <a
-                  href="tel:+919821115117"
-                  className="hover:underline hover:text-brand-start"
-                >
-                  +91 98211 15117
-                </a>
-              </p>
-              <p>
-                <span className="font-bold text-slate-800">Email: </span>
-                <a
-                  href="mailto:hello@skillo.live"
-                  className="hover:underline hover:text-brand-start"
-                >
-                  hello@skillo.live
-                </a>
               </p>
             </div>
           </div>
 
-          {/* Extracted Dynamic Link Groups */}
-          <div className="lg:col-span-5 grid grid-cols-1 sm:grid-cols-3 gap-6">
+          {/* Dynamic Link Groups */}
+          <div className="lg:col-span-6 grid grid-cols-2 sm:grid-cols-3 gap-6">
             {Object.entries(footerLinks).map(([title, links]) => (
-              <div key={title}>
+              <div key={title} className="col-span-1">
                 <h4 className="text-xs font-bold uppercase tracking-widest text-slate-400 mb-4">
                   {title}
                 </h4>
@@ -158,44 +150,35 @@ export default function Footer() {
             ))}
           </div>
 
-          {/* Newsletter Column */}
+          {/* Download Apps Column */}
           <div className="lg:col-span-3">
-            <h4 className="text-xs font-bold uppercase tracking-widest text-slate-400 mb-3">
-              Stay Updated
+            <h4 className="text-xs font-bold uppercase tracking-widest text-slate-400 mb-4">
+              Download App
             </h4>
-            <p className="text-sm text-slate-600 mb-4">
-              Weekly AI insights and learning resources delivered straight to
-              you.
-            </p>
-            <form onSubmit={handleSubscribe} className="flex gap-2">
-              <input
-                type="email"
-                value={email}
-                onChange={(e) => setEmail(e.target.value)}
-                placeholder="your@email.com"
-                className="flex-1 rounded-xl border border-slate-200 bg-white px-4 py-2.5 text-sm outline-none focus:border-brand-start focus:ring-1 focus:ring-brand-start transition"
-                required
-              />
-              <button
-                type="submit"
-                className="btn-brand flex items-center justify-center rounded-xl px-4"
-              >
-                {isSubscribed ? (
-                  <span className="text-sm font-bold">Done</span>
-                ) : (
-                  <ArrowRight className="h-4 w-4" />
-                )}
-              </button>
-            </form>
+            <div className="space-y-2">
+              {appLinks.map((app, index) => {
+                const Icon = app.icon;
+                return (
+                  <a
+                    key={index}
+                    href={app.href}
+                    className="flex items-center gap-3 px-4 py-2.5 bg-white border border-slate-200 rounded-lg hover:border-brand-start hover:shadow-md transition-all text-sm text-slate-700 hover:text-brand-start"
+                  >
+                    <Icon className="h-5 w-5 flex-shrink-0" />
+                    <span>{app.label}</span>
+                  </a>
+                );
+              })}
+            </div>
           </div>
         </div>
 
         {/* Bottom Metadata & Social Bar */}
-        <div className="mt-12 pt-6 border-t border-slate-100 flex flex-col sm:flex-row sm:items-center justify-between gap-5 text-sm">
-          <p className="text-slate-500">
+        <div className="mt-12 pt-6 border-t border-slate-200 flex flex-col sm:flex-row sm:items-center justify-between gap-5 text-sm">
+          <p className="text-slate-500 text-xs">
             &copy; {new Date().getFullYear()} Skillo. All rights reserved.
           </p>
-          {/* Social Profiles Linked Directly to Your Destinations */}
+          {/* Social Profiles */}
           <div className="flex gap-3">
             {socialLinks.map((item, i) => {
               const Icon = item.icon;

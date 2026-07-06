@@ -37,7 +37,7 @@ export default function CTASection() {
             {/* Buttons */}
             <div className="flex flex-col gap-3 sm:flex-row">
               <Link
-                href="/courses"
+                href="/course"
                 className="btn-brand inline-flex items-center justify-center gap-2 rounded-xl px-6 py-3 font-semibold"
               >
                 Explore Courses
