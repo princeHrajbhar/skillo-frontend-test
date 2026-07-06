@@ -45,70 +45,35 @@ export default function HeroSlider() {
 
   return (
     <section className="relative w-full overflow-hidden bg-white">
+    <div
+  className="relative w-full"
+  onTouchStart={handleTouchStart}
+  onTouchEnd={handleTouchEnd}
+>
+  <div
+    className="flex transition-transform duration-700 ease-in-out"
+    style={{
+      transform: `translateX(-${currentSlide * 100}%)`,
+    }}
+  >
+    {banners.map((banner, index) => (
       <div
-        className="relative w-full h-[160px] sm:h-[260px] lg:h-[380px] xl:h-[450px]"
-        onTouchStart={handleTouchStart}
-        onTouchEnd={handleTouchEnd}
+        key={index}
+        className="min-w-full flex justify-center bg-white"
       >
-        <div
-          className="flex h-full transition-transform duration-700 ease-in-out"
-          style={{
-            transform: `translateX(-${currentSlide * 100}%)`,
-          }}
-        >
-          {banners.map((banner, index) => (
-            <div
-              key={index}
-              className="relative min-w-full h-full flex-shrink-0"
-            >
-              <Image
-                src={banner}
-                alt={`Banner ${index + 1}`}
-                fill
-                priority={index === 0}
-                sizes="100vw"
-                className="object-cover"
-              />
-            </div>
-          ))}
-        </div>
-
-        {/* Previous */}
-        <button
-          type="button"
-          onClick={prevSlide}
-          aria-label="Previous"
-          className="absolute left-3 top-1/2 z-20 -translate-y-1/2 rounded-full bg-black/40 p-2 text-white backdrop-blur transition hover:bg-black/60"
-        >
-          ❮
-        </button>
-
-        {/* Next */}
-        <button
-          type="button"
-          onClick={nextSlide}
-          aria-label="Next"
-          className="absolute right-3 top-1/2 z-20 -translate-y-1/2 rounded-full bg-black/40 p-2 text-white backdrop-blur transition hover:bg-black/60"
-        >
-          ❯
-        </button>
-
-        {/* Dots */}
-        <div className="absolute bottom-4 left-1/2 z-20 flex -translate-x-1/2 gap-2">
-          {banners.map((_, index) => (
-            <button
-              key={index}
-              onClick={() => setCurrentSlide(index)}
-              aria-label={`Slide ${index + 1}`}
-              className={`rounded-full transition-all duration-300 ${
-                currentSlide === index
-                  ? "w-7 h-2 bg-white"
-                  : "w-2 h-2 bg-white/50 hover:bg-white"
-              }`}
-            />
-          ))}
-        </div>
+        <Image
+          src={banner}
+          alt={`Banner ${index + 1}`}
+          width={1920}
+          height={700}
+          priority={index === 0}
+          className="w-full h-auto max-w-full"
+          sizes="100vw"
+        />
       </div>
+    ))}
+  </div>
+</div>
     </section>
   );
 }

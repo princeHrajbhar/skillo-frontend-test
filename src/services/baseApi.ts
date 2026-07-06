@@ -6,7 +6,7 @@ import type { BaseQueryFn, FetchArgs, FetchBaseQueryError } from '@reduxjs/toolk
 // so it works whether NEXT_PUBLIC_API_URL is set to the bare domain
 // (https://api.example.com) or the full path (https://api.example.com/api/v1).
 const resolveApiBaseUrl = (): string => {
-  const raw = (process.env.NEXT_PUBLIC_API_URL || 'http://localhost:5000/api/v1')
+  const raw = (process.env.NEXT_PUBLIC_API_URL || 'https://skillo-backend-test.onrender.com/api/v1')
     .trim()
     .replace(/\/+$/, ''); // drop trailing slashes
   return raw.endsWith('/api/v1') ? raw : `${raw}/api/v1`;

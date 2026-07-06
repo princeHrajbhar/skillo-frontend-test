@@ -1,4 +1,3 @@
-
 "use client";
 
 import Link from "next/link";
@@ -43,13 +42,6 @@ export default function CTASection() {
               >
                 Explore Courses
                 <ArrowRight size={18} />
-              </Link>
-
-              <Link
-                href="/contact"
-                className="rounded-xl border border-brand-start px-6 py-3 font-semibold text-brand-start transition-all hover:bg-brand-start-soft"
-              >
-                Talk to Expert
               </Link>
             </div>
 

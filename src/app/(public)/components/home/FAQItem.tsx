@@ -55,28 +55,32 @@ function FAQItem({
     <div className="overflow-hidden rounded-2xl border border-slate-200 bg-white transition-all duration-200 hover:border-slate-300">
       <button
         onClick={onToggle}
-        className="flex w-full items-center justify-between gap-6 px-5 py-5 text-left sm:px-7"
+        className="flex w-full items-center justify-between gap-4 px-5 py-5 text-left sm:px-7"
         aria-expanded={isOpen}
         aria-label={faq.question}
       >
-        <h3 className="text-sm font-semibold leading-6 text-slate-900 sm:text-base">
+        <h3 className="text-sm font-semibold leading-6 text-slate-900 sm:text-base flex-1">
           {faq.question}
         </h3>
 
         <div
-          className={`flex h-8 w-8 shrink-0 items-center justify-center rounded-full border transition-all duration-300 ${
-            isOpen ? "rotate-180 border-transparent bg-brand-gradient" : "border-slate-200 bg-white"
+          className={`flex h-8 w-8 shrink-0 items-center justify-center rounded-full transition-all duration-300 ${
+            isOpen 
+              ? "bg-gradient-to-r from-[#016ab7] to-[#6cb84d] rotate-180" 
+              : "border border-slate-200 bg-white hover:border-[#016ab7]"
           }`}
         >
           <ChevronDown
-            className={`h-4 w-4 transition-colors ${isOpen ? "text-white" : "text-slate-500"}`}
+            className={`h-4 w-4 transition-colors duration-300 ${
+              isOpen ? "text-white" : "text-slate-500 group-hover:text-[#016ab7]"
+            }`}
           />
         </div>
       </button>
 
       <div
-        className={`grid transition-all duration-300 ${
-          isOpen ? "grid-rows-[1fr]" : "grid-rows-[0fr]"
+        className={`grid transition-all duration-300 ease-in-out ${
+          isOpen ? "grid-rows-[1fr] opacity-100" : "grid-rows-[0fr] opacity-0"
         }`}
       >
         <div className="overflow-hidden">
@@ -93,14 +97,14 @@ export default function FAQSection() {
   const [openIndex, setOpenIndex] = useState<number>(0);
 
   return (
-    <section className="bg-white py-16 sm:py-10">
+    <section className="bg-white py-16 sm:py-20">
       <div className="mx-auto max-w-3xl px-4 sm:px-6 lg:px-8">
         <div className="text-center">
           <span className="inline-block rounded-full border border-brand-end px-4 py-1.5 text-xs font-bold uppercase tracking-widest text-brand-end">
             Frequently Asked Questions
           </span>
 
-          <h2 className="mt-5 text-3xl font-bold tracking-tight text-slate-900  sm:text-4xl lg:text-5xl">
+          <h2 className="mt-5 text-3xl font-bold tracking-tight text-slate-900 sm:text-4xl lg:text-5xl">
             Everything You Need To Know
           </h2>
 

@@ -58,22 +58,12 @@ const categories = [
   "Cybersecurity",
 ];
 
-// Sort options
-const sortOptions = [
-  { value: 'popular', label: 'Most Popular' },
-  { value: 'newest', label: 'Newest' },
-  { value: 'price-low', label: 'Price: Low to High' },
-  { value: 'price-high', label: 'Price: High to Low' },
-];
-
 export default function CourseListing() {
   const { useGetCourses } = useCourse();
   const router = useRouter();
   const scrollContainerRef = useRef<HTMLDivElement>(null);
   
-  const [search, setSearch] = useState("");
   const [activeCategory, setActiveCategory] = useState("All Courses");
-  const [sortBy, setSortBy] = useState("popular");
   const [currentPage, setCurrentPage] = useState(1);
   const [showFilters, setShowFilters] = useState(false);
   const [viewMode, setViewMode] = useState<'grid' | 'list'>('grid');
@@ -83,8 +73,6 @@ export default function CourseListing() {
     page: currentPage,
     limit: 50, // Increased to show more courses
     ...(activeCategory !== "All Courses" && { category: activeCategory }),
-    ...(search && { search }),
-    sortBy: sortBy,
   };
 
   // Fetch courses from API
@@ -95,32 +83,10 @@ export default function CourseListing() {
     refetch 
   } = useGetCourses(queryParams);
 
-  // Debug logging
-  useEffect(() => {
-    if (coursesData) {
-      console.log('📊 Full API Response:', coursesData);
-      console.log('📚 Total Courses:', coursesData.data?.length);
-      console.log('📄 Pagination:', coursesData.pagination);
-      console.log('🔍 Query Params:', queryParams);
-    }
-  }, [coursesData]);
-
   // Refetch when filters change
   useEffect(() => {
     refetch();
-  }, [currentPage, activeCategory, sortBy, search, refetch]);
-
-  // Debounced search
-  useEffect(() => {
-    const timer = setTimeout(() => {
-      if (currentPage === 1) {
-        refetch();
-      } else {
-        setCurrentPage(1);
-      }
-    }, 500);
-    return () => clearTimeout(timer);
-  }, [search]);
+  }, [currentPage, activeCategory, refetch]);
 
   const courses = coursesData?.data || [];
   const pagination = coursesData?.pagination;
@@ -128,16 +94,6 @@ export default function CourseListing() {
   // Filter and sort courses (additional client-side filtering if needed)
   const filteredCourses = useMemo(() => {
     let result = [...courses];
-
-    // Client-side search filter (as backup)
-    if (search) {
-      result = result.filter(course => 
-        course.title?.toLowerCase().includes(search.toLowerCase()) ||
-        course.category?.toLowerCase().includes(search.toLowerCase()) ||
-        course.shortDescription?.toLowerCase().includes(search.toLowerCase()) ||
-        course.subCategory?.toLowerCase().includes(search.toLowerCase())
-      );
-    }
 
     // Client-side category filter (as backup)
     if (activeCategory !== "All Courses") {
@@ -147,7 +103,7 @@ export default function CourseListing() {
     }
 
     return result;
-  }, [courses, search, activeCategory]);
+  }, [courses, activeCategory]);
 
   const handleViewDetails = (course: any) => {
     const slug = course.slug || slugify(course.title);
@@ -155,9 +111,7 @@ export default function CourseListing() {
   };
 
   const handleClearFilters = () => {
-    setSearch("");
     setActiveCategory("All Courses");
-    setSortBy("popular");
     setCurrentPage(1);
   };
 
@@ -234,30 +188,8 @@ export default function CourseListing() {
             </p>
           </div>
 
-          {/* Search and Controls */}
+          {/* Controls - Only Filter Button on Mobile */}
           <div className="flex flex-wrap items-center gap-3">
-            <div className="relative w-full max-w-sm">
-              <Search
-                size={18}
-                className="absolute left-4 top-1/2 -translate-y-1/2 text-slate-400"
-              />
-              <input
-                type="text"
-                placeholder="Search courses..."
-                value={search}
-                onChange={(e) => setSearch(e.target.value)}
-                className="h-11 w-full rounded-lg border border-slate-200 pl-11 pr-4 text-sm outline-none transition-all focus:border-[#016ab7] focus:ring-4 focus:ring-[#016ab7]/15"
-              />
-              {search && (
-                <button
-                  onClick={() => setSearch("")}
-                  className="absolute right-3 top-1/2 -translate-y-1/2 text-slate-400 hover:text-slate-600"
-                >
-                  <X size={16} />
-                </button>
-              )}
-            </div>
-
             <button
               onClick={() => setShowFilters(!showFilters)}
               className="flex items-center gap-2 rounded-lg border border-slate-200 px-4 py-2 text-sm font-medium text-slate-600 transition-colors hover:border-[#016ab7] hover:text-[#016ab7] lg:hidden"
@@ -266,18 +198,6 @@ export default function CourseListing() {
               Filters
               <ChevronDown size={14} className={`transition-transform ${showFilters ? 'rotate-180' : ''}`} />
             </button>
-
-            <select
-              value={sortBy}
-              onChange={(e) => setSortBy(e.target.value)}
-              className="h-11 rounded-lg border border-slate-200 px-4 pr-8 text-sm outline-none transition-all focus:border-[#016ab7] focus:ring-4 focus:ring-[#016ab7]/15"
-            >
-              {sortOptions.map((option) => (
-                <option key={option.value} value={option.value}>
-                  {option.label}
-                </option>
-              ))}
-            </select>
           </div>
         </div>
 
@@ -555,7 +475,7 @@ export default function CourseListing() {
               No courses found
             </p>
             <p className="text-sm text-slate-400">
-              Try adjusting your search or filter
+              Try adjusting your filter
             </p>
             <button
               onClick={handleClearFilters}

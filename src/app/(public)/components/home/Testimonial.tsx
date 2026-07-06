@@ -1,4 +1,3 @@
-// app/components/testimonials/TestimonialCarousel.tsx
 "use client";
 
 import React, { useRef, useEffect } from "react";
@@ -16,16 +15,16 @@ export type Testimonial = {
 const DUMMY_TESTIMONIALS: Testimonial[] = [
   {
     id: 1,
-    name: "Sarah Johnson",
-    role: "Software Engineer",
-    company: "Google",
+    name: "Priya Sharma",
+    role: "Senior Software Engineer",
+    company: "Google India",
     content:
       "The AI course completely transformed my career. Within 3 months of completing the program, I landed my dream job at Google!",
     rating: 5,
   },
   {
     id: 2,
-    name: "Michael Chen",
+    name: "Rahul Verma",
     role: "Product Manager",
     company: "Amazon",
     content:
@@ -34,7 +33,7 @@ const DUMMY_TESTIMONIALS: Testimonial[] = [
   },
   {
     id: 3,
-    name: "Emily Rodriguez",
+    name: "Ananya Reddy",
     role: "Data Scientist",
     company: "Microsoft",
     content:
@@ -43,34 +42,34 @@ const DUMMY_TESTIMONIALS: Testimonial[] = [
   },
   {
     id: 4,
-    name: "David Kim",
+    name: "Vikram Patel",
     role: "Full Stack Developer",
-    company: "Startup Founder",
+    company: "Zomato",
     content:
       "From zero to job-ready in 8 months. The web development bootcamp changed my life completely.",
     rating: 4,
   },
   {
     id: 5,
-    name: "Lisa Thompson",
+    name: "Neha Gupta",
     role: "UX Designer",
-    company: "Apple",
+    company: "Flipkart",
     content:
-      "The UI/UX course helped me build an impressive portfolio. Now working at Apple!",
+      "The UI/UX course helped me build an impressive portfolio. Now working at Flipkart!",
     rating: 5,
   },
   {
     id: 6,
-    name: "James Wilson",
+    name: "Arjun Singh",
     role: "CTO",
-    company: "AI Startup",
+    company: "TechVibe",
     content:
       "The generative AI program gave me cutting-edge skills. Launched my own AI startup after graduation.",
     rating: 5,
   },
   {
     id: 7,
-    name: "Maria Garcia",
+    name: "Sneha Krishnan",
     role: "Marketing Manager",
     company: "Meta",
     content:
@@ -79,12 +78,75 @@ const DUMMY_TESTIMONIALS: Testimonial[] = [
   },
   {
     id: 8,
-    name: "Robert Taylor",
+    name: "Amit Kumar",
     role: "Cloud Architect",
-    company: "AWS",
+    company: "AWS India",
     content:
       "Cloud computing program is world-class. The hands-on projects prepared me for real-world challenges.",
     rating: 4,
+  },
+  {
+    id: 9,
+    name: "Deepika Nair",
+    role: "Data Analyst",
+    company: "Swiggy",
+    content:
+      "The data analytics bootcamp helped me transition from finance to tech. Best decision ever!",
+    rating: 5,
+  },
+  {
+    id: 10,
+    name: "Karan Malhotra",
+    role: "DevOps Engineer",
+    company: "Oracle",
+    content:
+      "Mastering DevOps through this program opened doors at top companies. Highly recommended!",
+    rating: 4,
+  },
+  {
+    id: 11,
+    name: "Meera Iyer",
+    role: "AI Research Scientist",
+    company: "IBM",
+    content:
+      "The deep learning specialization is outstanding. The projects are industry-relevant and challenging.",
+    rating: 5,
+  },
+  {
+    id: 12,
+    name: "Suresh Reddy",
+    role: "Frontend Developer",
+    company: "Swiggy",
+    content:
+      "From a non-CS background to landing a frontend role at Swiggy - this course made it possible.",
+    rating: 5,
+  },
+  {
+    id: 13,
+    name: "Kavya Sharma",
+    role: "Business Analyst",
+    company: "Deloitte",
+    content:
+      "The business analytics program gave me the tools to excel in my consulting career.",
+    rating: 4,
+  },
+  {
+    id: 14,
+    name: "Aditya Roy",
+    role: "Machine Learning Engineer",
+    company: "Intel",
+    content:
+      "Exceptional curriculum and hands-on projects. Now working on cutting-edge ML applications.",
+    rating: 5,
+  },
+  {
+    id: 15,
+    name: "Pooja Desai",
+    role: "Technical Product Manager",
+    company: "Microsoft",
+    content:
+      "The product management course with AI specialization was exactly what I needed for career growth.",
+    rating: 5,
   },
 ];
 
@@ -98,6 +160,10 @@ const AVATAR_COLORS = [
   "#5aaa3e",
   "#024f8a",
   "#4d9933",
+  "#016AB7",
+  "#6CB84D",
+  "#0a52a0",
+  "#52a035",
 ];
 
 interface TestimonialCarouselProps {
