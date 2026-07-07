@@ -1,6 +1,6 @@
 "use client";
 
-import { useMemo, useState, useEffect, useRef } from "react";
+import { useMemo, useState, useEffect } from "react";
 import { 
   Search, 
   Star, 
@@ -22,6 +22,7 @@ import {
 import { useRouter } from "next/navigation";
 import { useCourse } from "@/features/course/hooks/useCourse";
 import type { GetCoursesQuery } from "@/features/course/api/courseApi";
+import Image from "next/image";
 
 // Helper function to format price in Indian Rupees
 const formatPrice = (price: number) => {
@@ -46,33 +47,17 @@ const slugify = (title: string) => {
     .replace(/^-+|-+$/g, '');
 };
 
-// Dynamic categories from API
-const categories = [
-  "All Courses",
-  "Technology",
-  "AI",
-  "Web Development",
-  "Data Science",
-  "DevOps",
-  "Cloud Computing",
-  "Cybersecurity",
-];
-
 export default function CourseListing() {
   const { useGetCourses } = useCourse();
   const router = useRouter();
-  const scrollContainerRef = useRef<HTMLDivElement>(null);
   
-  const [activeCategory, setActiveCategory] = useState("All Courses");
   const [currentPage, setCurrentPage] = useState(1);
   const [showFilters, setShowFilters] = useState(false);
-  const [viewMode, setViewMode] = useState<'grid' | 'list'>('grid');
 
   // Build query params - Increase limit to get all courses
   const queryParams: GetCoursesQuery = {
     page: currentPage,
     limit: 50, // Increased to show more courses
-    ...(activeCategory !== "All Courses" && { category: activeCategory }),
   };
 
   // Fetch courses from API
@@ -86,49 +71,14 @@ export default function CourseListing() {
   // Refetch when filters change
   useEffect(() => {
     refetch();
-  }, [currentPage, activeCategory, refetch]);
+  }, [currentPage, refetch]);
 
   const courses = coursesData?.data || [];
   const pagination = coursesData?.pagination;
 
-  // Filter and sort courses (additional client-side filtering if needed)
-  const filteredCourses = useMemo(() => {
-    let result = [...courses];
-
-    // Client-side category filter (as backup)
-    if (activeCategory !== "All Courses") {
-      result = result.filter(course => 
-        course.category === activeCategory
-      );
-    }
-
-    return result;
-  }, [courses, activeCategory]);
-
   const handleViewDetails = (course: any) => {
     const slug = course.slug || slugify(course.title);
     router.push(`/course/${course.category}/${slug}`);
-  };
-
-  const handleClearFilters = () => {
-    setActiveCategory("All Courses");
-    setCurrentPage(1);
-  };
-
-  // Scroll functions for category navigation
-  const scrollCategories = (direction: 'left' | 'right') => {
-    const container = scrollContainerRef.current;
-    if (!container) return;
-    
-    const scrollAmount = 200;
-    const targetScroll = direction === 'left' 
-      ? container.scrollLeft - scrollAmount 
-      : container.scrollLeft + scrollAmount;
-    
-    container.scrollTo({ 
-      left: targetScroll, 
-      behavior: 'smooth' 
-    });
   };
 
   // Loading state
@@ -187,135 +137,19 @@ export default function CourseListing() {
               Learn industry-ready skills from experts.
             </p>
           </div>
-
-          {/* Controls - Only Filter Button on Mobile */}
-          <div className="flex flex-wrap items-center gap-3">
-            <button
-              onClick={() => setShowFilters(!showFilters)}
-              className="flex items-center gap-2 rounded-lg border border-slate-200 px-4 py-2 text-sm font-medium text-slate-600 transition-colors hover:border-[#016ab7] hover:text-[#016ab7] lg:hidden"
-            >
-              <Filter size={16} />
-              Filters
-              <ChevronDown size={14} className={`transition-transform ${showFilters ? 'rotate-180' : ''}`} />
-            </button>
-          </div>
         </div>
-
-        {/* Category Filters with Scroll Buttons */}
-        <div className="relative mb-6">
-          {/* Left Scroll Button */}
-          <button
-            onClick={() => scrollCategories('left')}
-            className="absolute left-0 top-1/2 z-10 -translate-y-1/2 rounded-full bg-white shadow-md border border-slate-200 p-1.5 text-slate-600 transition-all hover:bg-slate-50 hover:border-[#016ab7] hover:text-[#016ab7]"
-            aria-label="Scroll categories left"
-          >
-            <ChevronLeft size={18} />
-          </button>
-
-          {/* Categories Container */}
-          <div
-            ref={scrollContainerRef}
-            className="flex gap-3 overflow-x-auto scroll-smooth px-8 py-1 hide-scrollbar"
-          >
-            {categories.map((category) => (
-              <button
-                key={category}
-                onClick={() => setActiveCategory(category)}
-                className={`flex-shrink-0 rounded-full px-4 py-2 text-sm font-medium transition-all duration-300 whitespace-nowrap ${
-                  activeCategory === category
-                    ? "bg-gradient-to-r from-[#016ab7] to-[#6cb84d] text-white shadow-sm shadow-[#016ab7]/25"
-                    : "border border-slate-200 bg-white text-slate-600 hover:border-[#016ab7] hover:text-[#016ab7]"
-                }`}
-              >
-                {category}
-              </button>
-            ))}
-          </div>
-
-          {/* Right Scroll Button */}
-          <button
-            onClick={() => scrollCategories('right')}
-            className="absolute right-0 top-1/2 z-10 -translate-y-1/2 rounded-full bg-white shadow-md border border-slate-200 p-1.5 text-slate-600 transition-all hover:bg-slate-50 hover:border-[#016ab7] hover:text-[#016ab7]"
-            aria-label="Scroll categories right"
-          >
-            <ChevronRight size={18} />
-          </button>
-        </div>
-
-        {/* Mobile Filters */}
-        {showFilters && (
-          <div className="mb-6 rounded-xl border border-slate-200 bg-slate-50 p-4 lg:hidden">
-            <div className="space-y-4">
-              <div>
-                <label className="mb-2 block text-sm font-medium text-slate-700">Categories</label>
-                <div className="flex flex-wrap gap-2">
-                  {categories.map((category) => (
-                    <button
-                      key={category}
-                      onClick={() => {
-                        setActiveCategory(category);
-                        setShowFilters(false);
-                      }}
-                      className={`rounded-full px-3 py-1.5 text-sm ${
-                        activeCategory === category
-                          ? "bg-gradient-to-r from-[#016ab7] to-[#6cb84d] text-white"
-                          : "bg-white text-slate-600 border border-slate-200"
-                      }`}
-                    >
-                      {category}
-                    </button>
-                  ))}
-                </div>
-              </div>
-              <button
-                onClick={handleClearFilters}
-                className="text-sm text-[#016ab7] hover:underline"
-              >
-                Clear All Filters
-              </button>
-            </div>
-          </div>
-        )}
 
         {/* Results Count */}
         <div className="mb-4 flex items-center justify-between">
           <p className="text-sm text-slate-500">
-            Showing {filteredCourses.length} of {pagination?.total || courses.length} courses
+            Showing {courses.length} of {pagination?.total || courses.length} courses
           </p>
-          {filteredCourses.length > 0 && (
-            <div className="flex items-center gap-2">
-              <button
-                onClick={() => setViewMode('grid')}
-                className={`rounded-lg p-2 transition-colors ${
-                  viewMode === 'grid' ? 'bg-[#016ab7]/10 text-[#016ab7]' : 'hover:bg-slate-100'
-                }`}
-              >
-                <svg className="h-5 w-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 6a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2H6a2 2 0 01-2-2V6zm10 0a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2h-2a2 2 0 01-2-2V6zM4 16a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2H6a2 2 0 01-2-2v-2zm10 0a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2h-2a2 2 0 01-2-2v-2z" />
-                </svg>
-              </button>
-              <button
-                onClick={() => setViewMode('list')}
-                className={`rounded-lg p-2 transition-colors ${
-                  viewMode === 'list' ? 'bg-[#016ab7]/10 text-[#016ab7]' : 'hover:bg-slate-100'
-                }`}
-              >
-                <svg className="h-5 w-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 6h16M4 12h16M4 18h16" />
-                </svg>
-              </button>
-            </div>
-          )}
         </div>
 
-        {/* Course Cards */}
-        {filteredCourses.length > 0 ? (
-          <div className={
-            viewMode === 'grid' 
-              ? "grid gap-5 md:grid-cols-2 xl:grid-cols-3"
-              : "space-y-4"
-          }>
-            {filteredCourses.map((course) => {
+        {/* Course Cards - Grid View Only */}
+        {courses.length > 0 ? (
+          <div className="grid gap-5 md:grid-cols-2 xl:grid-cols-3">
+            {courses.map((course) => {
               const hasDiscount = course.discountedPrice !== undefined && 
                                   course.discountedPrice !== null && 
                                   course.discountedPrice < (course.price || 0);
@@ -328,94 +162,51 @@ export default function CourseListing() {
                 ? calculateDiscount(course.price, course.discountedPrice as number) 
                 : 0;
 
-              // FIX: Removed discount badge from image - using clean image without overlays
               const imageUrl = course.bannerImage?.url || 
                               'https://images.unsplash.com/photo-1633356122102-3fe601e05bd2?w=800';
-
-              const rating = 4.5;
-              const studentCount = 0;
 
               return (
                 <div
                   key={course._id}
-                  className={`group overflow-hidden rounded-xl border border-slate-200 bg-white transition-all duration-300 hover:-translate-y-1 hover:shadow-lg ${
-                    viewMode === 'list' ? 'flex gap-6 p-4' : ''
-                  }`}
+                  className="group overflow-hidden rounded-xl border border-slate-200 bg-white transition-all duration-300 hover:-translate-y-1 hover:shadow-lg"
                 >
-                  {/* FIX: Clean image without overlapping badges */}
-                  <div className={`relative ${viewMode === 'list' ? 'w-64 flex-shrink-0' : ''}`}>
-                    <img
+                  {/* Image with proper Next.js Image component */}
+                  <div className="relative w-full pt-[56.25%] bg-gray-100 overflow-hidden">
+                    <Image
                       src={imageUrl}
                       alt={course.title}
-                      className={`w-full object-cover ${
-                        viewMode === 'grid' ? 'h-48' : 'h-40'
-                      }`}
-                      loading="lazy"
+                      fill
+                      sizes="(max-width: 640px) 100vw, (max-width: 768px) 50vw, (max-width: 1024px) 33vw, 25vw"
+                      className="object-cover group-hover:scale-105 transition-transform duration-500"
+                      priority={false}
                     />
-                    
-                    {/* FIX: Removed discount badge from image - only rating badge remains */}
-                    {/* Rating Badge - Top Right corner only */}
-                    <div className="absolute right-3 top-3 flex items-center gap-1.5 rounded-full bg-white/95 px-2.5 py-1 shadow-lg shadow-black/10 backdrop-blur-sm">
-                      <Star size={12} className="fill-yellow-400 text-yellow-400" />
-                      <span className="text-xs font-bold text-slate-700">
-                        {rating}
-                      </span>
-                      <span className="text-[10px] text-slate-400">★</span>
-                    </div>
                   </div>
 
                   {/* Content */}
-                  <div className={`flex-1 ${viewMode === 'grid' ? 'p-5' : 'py-3 pr-3'}`}>
+                  <div className="p-5">
                     <div className="flex items-center gap-2 flex-wrap">
                       <span className="rounded-full bg-[#016ab7]/10 px-3 py-1 text-xs font-medium text-[#016ab7]">
                         {course.category || 'General'}
                       </span>
-                      {course.subCategory && (
-                        <span className="rounded-full bg-slate-100 px-3 py-1 text-xs font-medium text-slate-600">
-                          {course.subCategory}
-                        </span>
-                      )}
-                      {course.status === 'active' && (
-                        <span className="rounded-full bg-[#6cb84d]/10 px-3 py-1 text-xs font-medium text-[#6cb84d]">
-                          Active
-                        </span>
-                      )}
-                      {course.status === 'upcoming' && (
-                        <span className="rounded-full bg-amber-100 px-3 py-1 text-xs font-medium text-amber-700">
-                          Upcoming
-                        </span>
-                      )}
                     </div>
 
-                    <h3 className={`font-bold leading-tight text-slate-900 group-hover:text-[#016ab7] transition-colors ${
-                      viewMode === 'grid' ? 'mt-3 text-lg' : 'mt-2 text-xl'
-                    }`}>
+                    <h3 className="mt-3 text-lg font-bold leading-tight text-slate-900 group-hover:text-[#016ab7] transition-colors line-clamp-2">
                       {course.title}
                     </h3>
 
-                    <p className={`text-slate-600 ${
-                      viewMode === 'grid' ? 'mt-2 text-sm line-clamp-2' : 'mt-1 text-sm line-clamp-2'
-                    }`}>
+                    <p className="mt-2 text-sm text-slate-600 line-clamp-2">
                       {course.shortDescription || 'Learn the fundamentals and advanced concepts of this subject.'}
                     </p>
 
-                    <div className={`flex items-center gap-4 text-xs text-slate-500 ${
-                      viewMode === 'grid' ? 'mt-3' : 'mt-2'
-                    }`}>
-                      <div className="flex items-center gap-1">
-                        <Users size={14} />
-                        <span>{studentCount} students</span>
-                      </div>
+                    <div className="mt-3 flex items-center gap-4 text-xs text-slate-500">
                       <div className="flex items-center gap-1">
                         <Clock size={14} />
                         <span>Self-paced</span>
                       </div>
                     </div>
 
-                    {/* FIX: Discount shown in content area instead of on image */}
-                    <div className={`flex items-center gap-3 ${
-                      viewMode === 'grid' ? 'mt-3' : 'mt-2'
-                    }`}>
+                    {/* Price and Discount */}
+                    <div className="mt-3 flex items-center gap-3">
                       <span className="text-2xl font-bold text-slate-900">
                         {formatPrice(finalPrice)}
                       </span>
@@ -434,23 +225,20 @@ export default function CourseListing() {
                       )}
                     </div>
 
-                    {/* FIX: "Buy Now" button instead of "Add to Cart" */}
-                    <div className={`grid gap-2 ${
-                      viewMode === 'grid' ? 'mt-4 grid-cols-2' : 'mt-3 flex'
-                    }`}>
+                    {/* Buy Now Button */}
+                    <div className="mt-4 grid grid-cols-2 gap-2">
                       <button
                         onClick={() => handleViewDetails(course)}
-                        className="flex items-center justify-center gap-2 rounded-lg bg-gradient-to-r from-[#016ab7] to-[#6cb84d] px-4 py-2.5 text-sm font-medium text-white transition-all hover:shadow-lg hover:shadow-[#016ab7]/25 hover:scale-[1.02]"
+                        className="flex items-center justify-center gap-2 rounded-lg bg-[#016ab7] px-4 py-2.5 text-sm font-medium text-white transition-all hover:bg-[#0158a0] hover:shadow-lg hover:shadow-[#016ab7]/25 hover:scale-[1.02]"
                       >
                         View Details
                         <ArrowRight size={16} />
                       </button>
                       <button
                         onClick={() => {
-                          // FIX: Changed from "Add to Cart" to "Buy Now"
                           console.log(`Buy Now: ${course.title}`);
                         }}
-                        className="rounded-lg border-2 border-[#016ab7] bg-transparent px-4 py-2.5 text-sm font-medium text-[#016ab7] transition-all hover:bg-gradient-to-r hover:from-[#016ab7] hover:to-[#6cb84d] hover:text-white hover:shadow-lg hover:shadow-[#016ab7]/25 hover:border-transparent"
+                        className="rounded-lg border-2 border-[#016ab7] bg-transparent px-4 py-2.5 text-sm font-medium text-[#016ab7] transition-all hover:bg-[#016ab7] hover:text-white hover:shadow-lg hover:shadow-[#016ab7]/25"
                       >
                         Buy Now
                       </button>
@@ -467,14 +255,8 @@ export default function CourseListing() {
               No courses found
             </p>
             <p className="text-sm text-slate-400">
-              Try adjusting your filter
+              Please check back later for new courses.
             </p>
-            <button
-              onClick={handleClearFilters}
-              className="mt-4 rounded-lg bg-gradient-to-r from-[#016ab7] to-[#6cb84d] px-6 py-2 text-sm font-medium text-white transition-all hover:shadow-lg hover:shadow-[#016ab7]/25"
-            >
-              Clear Filters
-            </button>
           </div>
         )}
 
@@ -498,7 +280,7 @@ export default function CourseListing() {
                     onClick={() => setCurrentPage(pageNum)}
                     className={`h-10 w-10 rounded-lg text-sm font-medium transition-all ${
                       currentPage === pageNum
-                        ? "bg-gradient-to-r from-[#016ab7] to-[#6cb84d] text-white shadow-sm shadow-[#016ab7]/25"
+                        ? "bg-[#016ab7] text-white shadow-sm shadow-[#016ab7]/25"
                         : "border border-slate-200 text-slate-600 hover:border-[#016ab7] hover:text-[#016ab7]"
                     }`}
                   >
@@ -521,17 +303,6 @@ export default function CourseListing() {
           </div>
         )}
       </div>
-
-      {/* Global styles for hiding scrollbar */}
-      <style jsx global>{`
-        .hide-scrollbar::-webkit-scrollbar {
-          display: none;
-        }
-        .hide-scrollbar {
-          -ms-overflow-style: none;
-          scrollbar-width: none;
-        }
-      `}</style>
     </section>
   );
 }

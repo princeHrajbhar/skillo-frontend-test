@@ -11,16 +11,16 @@ export default function CTASection() {
         <div className="relative overflow-hidden rounded-3xl border border-slate-300 bg-white">
 
           {/* Blue Glow */}
-          <div className="absolute -right-32 -top-32 h-80 w-80 rounded-full bg-brand-start/30 blur-3xl" />
+          <div className="absolute -right-32 -top-32 h-80 w-80 rounded-full bg-[#016ab7]/30 blur-3xl" />
 
           {/* Green Glow */}
-          <div className="absolute -left-20 bottom-0 h-48 w-48 rounded-full bg-brand-end/30 blur-3xl" />
+          <div className="absolute -left-20 bottom-0 h-48 w-48 rounded-full bg-[#6cb84d]/30 blur-3xl" />
 
           <div className="relative z-10 flex flex-col gap-8 p-8 lg:flex-row lg:items-center lg:justify-between lg:p-10">
 
             {/* Content */}
             <div className="max-w-2xl">
-              <span className="inline-flex rounded-full border border-brand-start/20 bg-brand-start-soft px-3 py-1 text-sm font-medium text-brand-start">
+              <span className="inline-flex rounded-full border border-[#016ab7]/20 bg-[#016ab7]/10 px-3 py-1 text-sm font-medium text-[#016ab7]">
                 Start Learning Today
               </span>
 
@@ -38,7 +38,7 @@ export default function CTASection() {
             <div className="flex flex-col gap-3 sm:flex-row">
               <Link
                 href="/course"
-                className="btn-brand inline-flex items-center justify-center gap-2 rounded-xl px-6 py-3 font-semibold"
+                className="inline-flex items-center justify-center gap-2 rounded-xl bg-[#016ab7] px-6 py-3 font-semibold text-white transition-all hover:bg-[#0158a0] hover:shadow-lg hover:shadow-[#016ab7]/25 hover:scale-[1.02]"
               >
                 Explore Courses
                 <ArrowRight size={18} />

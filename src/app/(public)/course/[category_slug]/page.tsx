@@ -3,6 +3,7 @@
 import { useState, useEffect, useMemo } from 'react';
 import { useParams, useRouter } from 'next/navigation';
 import Link from 'next/link';
+import Image from 'next/image';
 import {
   Search,
   BookOpen,
@@ -13,9 +14,7 @@ import {
   Loader2,
   ArrowLeft,
   Grid,
-  List,
   AlertCircle,
-  Heart,
   X,
   Star,
   ArrowRight,
@@ -30,8 +29,6 @@ export default function CategoryCoursesPage() {
   const [searchTerm, setSearchTerm] = useState('');
   const [currentPage, setCurrentPage] = useState(1);
   const [itemsPerPage] = useState(9);
-  const [viewMode, setViewMode] = useState<'grid' | 'list'>('grid');
-  const [wishlist, setWishlist] = useState<string[]>([]);
 
   const { useGetCourses } = useCourse();
   const { data, isLoading, error, refetch } = useGetCourses({
@@ -85,14 +82,6 @@ export default function CategoryCoursesPage() {
     });
   };
 
-  const toggleWishlist = (courseId: string) => {
-    setWishlist(prev => 
-      prev.includes(courseId) 
-        ? prev.filter(id => id !== courseId)
-        : [...prev, courseId]
-    );
-  };
-
   // Clear search
   const clearSearch = () => {
     setSearchTerm('');
@@ -126,7 +115,7 @@ export default function CategoryCoursesPage() {
           </p>
           <button
             onClick={() => refetch()}
-            className="px-4 py-2 bg-[#016ab7] text-white rounded-lg hover:bg-[#015a9e] transition-colors"
+            className="px-4 py-2 bg-[#016ab7] text-white rounded-lg hover:bg-[#0158a0] transition-colors"
           >
             Try Again
           </button>
@@ -139,7 +128,7 @@ export default function CategoryCoursesPage() {
     <>
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-12">
         {/* Hero Banner */}
-        <div className="relative bg-gradient-to-r from-[#016ab7] to-[#6cb84d] rounded-2xl overflow-hidden mb-8">
+        <div className="relative bg-[#016ab7] rounded-2xl overflow-hidden mb-8">
           <div className="absolute inset-0 bg-black/10"></div>
           <div className="relative px-6 py-10 sm:px-8 sm:py-12 md:px-12 md:py-16">
             <div className="max-w-2xl">
@@ -176,29 +165,11 @@ export default function CategoryCoursesPage() {
             <div className="flex items-center gap-3">
               <Link
                 href="/course"
-                className="inline-flex items-center gap-2 px-4 py-2 bg-gradient-to-r from-[#016ab7] to-[#6cb84d] text-white font-semibold rounded-lg hover:shadow-lg hover:shadow-[#016ab7]/25 hover:scale-[1.02] transition-all duration-300 text-sm"
+                className="inline-flex items-center gap-2 px-4 py-2 bg-[#016ab7] text-white font-semibold rounded-lg hover:bg-[#0158a0] hover:shadow-lg hover:shadow-[#016ab7]/25 hover:scale-[1.02] transition-all duration-300 text-sm"
               >
                 Browse All Courses
                 <ArrowRight className="h-4 w-4" />
               </Link>
-              <div className="flex items-center gap-1 bg-gray-100 rounded-lg p-1">
-                <button
-                  onClick={() => setViewMode('grid')}
-                  className={`p-1.5 rounded-lg transition-colors ${
-                    viewMode === 'grid' ? 'bg-white shadow-sm text-[#016ab7]' : 'text-gray-500 hover:text-gray-700'
-                  }`}
-                >
-                  <Grid className="h-4 w-4" />
-                </button>
-                <button
-                  onClick={() => setViewMode('list')}
-                  className={`p-1.5 rounded-lg transition-colors ${
-                    viewMode === 'list' ? 'bg-white shadow-sm text-[#016ab7]' : 'text-gray-500 hover:text-gray-700'
-                  }`}
-                >
-                  <List className="h-4 w-4" />
-                </button>
-              </div>
             </div>
           </div>
         </div>
@@ -233,7 +204,7 @@ export default function CategoryCoursesPage() {
               "{searchTerm}"
               <button
                 onClick={clearSearch}
-                className="hover:text-[#015a9e] transition-colors"
+                className="hover:text-[#0158a0] transition-colors"
               >
                 <X className="h-3 w-3" />
               </button>
@@ -244,7 +215,7 @@ export default function CategoryCoursesPage() {
           </div>
         )}
 
-        {/* Course Display */}
+        {/* Course Display - Grid View Only */}
         {paginatedCourses.length === 0 ? (
           <div className="text-center py-16 bg-white rounded-2xl border border-gray-200">
             <BookOpen className="h-16 w-16 text-gray-300 mx-auto mb-4" />
@@ -263,59 +234,36 @@ export default function CategoryCoursesPage() {
             {searchTerm && (
               <button
                 onClick={clearSearch}
-                className="mt-4 px-4 py-2 bg-[#016ab7] text-white rounded-lg hover:bg-[#015a9e] transition-colors"
+                className="mt-4 px-4 py-2 bg-[#016ab7] text-white rounded-lg hover:bg-[#0158a0] transition-colors"
               >
                 Clear Search
               </button>
             )}
           </div>
-        ) : viewMode === 'grid' ? (
+        ) : (
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
             {paginatedCourses.map((course) => (
               <div 
                 key={course._id} 
                 className="group bg-white rounded-2xl border border-gray-200 shadow-sm hover:shadow-xl transition-all duration-300 overflow-hidden relative flex flex-col h-full"
               >
-                {/* Wishlist Icon */}
-                <button
-                  onClick={(e) => {
-                    e.preventDefault();
-                    toggleWishlist(course._id);
-                  }}
-                  className="absolute top-3 right-3 z-10 p-2 bg-white/90 backdrop-blur-sm rounded-full shadow-md hover:scale-110 transition-transform duration-200"
-                  aria-label={wishlist.includes(course._id) ? 'Remove from wishlist' : 'Add to wishlist'}
-                >
-                  <Heart 
-                    className={`h-5 w-5 transition-all duration-200 ${
-                      wishlist.includes(course._id) 
-                        ? 'fill-red-500 text-red-500 scale-110' 
-                        : 'text-gray-400 hover:text-red-500'
-                    }`}
-                  />
-                </button>
-
                 <Link
                   href={`/course/${course.category}/${course.slug}`}
                   className="block flex flex-col h-full"
                 >
-                  <div className="relative h-48 bg-gray-100 overflow-hidden flex-shrink-0">
+                  <div className="relative w-full pt-[56.25%] bg-gray-100 overflow-hidden flex-shrink-0">
                     {course.bannerImage?.url ? (
-                      <img
+                      <Image
                         src={course.bannerImage.url}
                         alt={course.title}
-                        className="w-full h-full object-cover transition-transform duration-300 group-hover:scale-[1.02]"
-                        onError={(e) => {
-                          (e.target as HTMLImageElement).style.display = "none";
-                        }}
+                        fill
+                        sizes="(max-width: 640px) 100vw, (max-width: 768px) 50vw, (max-width: 1024px) 33vw, 25vw"
+                        className="object-cover group-hover:scale-105 transition-transform duration-500"
+                        priority={false}
                       />
                     ) : (
-                      <div className="w-full h-full flex items-center justify-center bg-gradient-to-br from-[#016ab7]/10 to-[#6cb84d]/10">
-                        <BookOpen className="h-12 w-12 text-[#016ab7]/30" />
-                      </div>
-                    )}
-                    {course.discountedPrice < course.price && (
-                      <div className="absolute top-3 left-3 bg-red-500 text-white text-xs font-bold px-3 py-1 rounded-full">
-                        SAVE {Math.round(((course.price - course.discountedPrice) / course.price) * 100)}%
+                      <div className="absolute inset-0 bg-[#016ab7] flex items-center justify-center">
+                        <BookOpen className="h-12 w-12 text-white/50" />
                       </div>
                     )}
                   </div>
@@ -346,90 +294,6 @@ export default function CategoryCoursesPage() {
                       <div className="flex items-center gap-1 text-xs text-gray-400">
                         <Clock className="h-3 w-3" />
                         {formatDate(course.createdAt)}
-                      </div>
-                    </div>
-                  </div>
-                </Link>
-              </div>
-            ))}
-          </div>
-        ) : (
-          <div className="space-y-4">
-            {paginatedCourses.map((course) => (
-              <div 
-                key={course._id} 
-                className="group bg-white rounded-2xl border border-gray-200 shadow-sm hover:shadow-xl transition-all duration-300 overflow-hidden relative"
-              >
-                {/* Wishlist Icon */}
-                <button
-                  onClick={(e) => {
-                    e.preventDefault();
-                    toggleWishlist(course._id);
-                  }}
-                  className="absolute top-3 right-3 z-10 p-2 bg-white/90 backdrop-blur-sm rounded-full shadow-md hover:scale-110 transition-transform duration-200"
-                  aria-label={wishlist.includes(course._id) ? 'Remove from wishlist' : 'Add to wishlist'}
-                >
-                  <Heart 
-                    className={`h-5 w-5 transition-all duration-200 ${
-                      wishlist.includes(course._id) 
-                        ? 'fill-red-500 text-red-500 scale-110' 
-                        : 'text-gray-400 hover:text-red-500'
-                    }`}
-                  />
-                </button>
-
-                <Link
-                  href={`/course/${course.category}/${course.slug}`}
-                  className="block"
-                >
-                  <div className="flex flex-col sm:flex-row">
-                    <div className="sm:w-64 h-48 sm:h-auto relative bg-gray-100 overflow-hidden flex-shrink-0">
-                      {course.bannerImage?.url ? (
-                        <img
-                          src={course.bannerImage.url}
-                          alt={course.title}
-                          className="w-full h-full object-cover transition-transform duration-300 group-hover:scale-[1.02]"
-                          onError={(e) => {
-                            (e.target as HTMLImageElement).style.display = "none";
-                          }}
-                        />
-                      ) : (
-                        <div className="w-full h-full flex items-center justify-center bg-gradient-to-br from-[#016ab7]/10 to-[#6cb84d]/10">
-                          <BookOpen className="h-12 w-12 text-[#016ab7]/30" />
-                        </div>
-                      )}
-                      {course.discountedPrice < course.price && (
-                        <div className="absolute top-3 left-3 bg-red-500 text-white text-xs font-bold px-3 py-1 rounded-full">
-                          SAVE {Math.round(((course.price - course.discountedPrice) / course.price) * 100)}%
-                        </div>
-                      )}
-                    </div>
-                    <div className="flex-1 p-5 flex flex-col">
-                      <h3 className="text-lg font-semibold text-gray-900 group-hover:text-[#016ab7] transition-colors">
-                        {course.title}
-                      </h3>
-                      <p className="text-sm text-gray-500 mt-1 flex-1">{course.shortDescription}</p>
-                      <div className="flex items-center justify-between mt-4 pt-4 border-t border-gray-100">
-                        <div className="flex items-center gap-2">
-                          {course.discountedPrice < course.price ? (
-                            <div className="flex items-center gap-1.5">
-                              <span className="text-lg font-bold text-[#016ab7]">
-                                {formatPrice(course.discountedPrice)}
-                              </span>
-                              <span className="text-xs text-gray-400 line-through">
-                                {formatPrice(course.price)}
-                              </span>
-                            </div>
-                          ) : (
-                            <span className="text-lg font-bold text-gray-900">
-                              {formatPrice(course.price)}
-                            </span>
-                          )}
-                        </div>
-                        <div className="flex items-center gap-1 text-xs text-gray-400">
-                          <Clock className="h-3 w-3" />
-                          {formatDate(course.createdAt)}
-                        </div>
                       </div>
                     </div>
                   </div>

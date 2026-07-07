@@ -88,7 +88,7 @@ export default function LogoSlider() {
   };
 
   return (
-    <section className="relative w-full overflow-hidden border-y border-gray-100 bg-white py-6">
+    <section className="relative w-full overflow-hidden border-y border-gray-100 bg-white py-6 m-0">
       {/* Fade Effect */}
       <div className="pointer-events-none absolute left-0 top-0 z-20 h-full w-20 bg-gradient-to-r from-white to-transparent" />
       <div className="pointer-events-none absolute right-0 top-0 z-20 h-full w-20 bg-gradient-to-l from-white to-transparent" />
@@ -98,7 +98,7 @@ export default function LogoSlider() {
         {/* Left Arrow */}
         <button
           onClick={() => handleScroll("left")}
-          className="absolute left-2 top-1/2 z-30 flex h-10 w-10 -translate-y-1/2 items-center justify-center rounded-full border border-gray-200 bg-white shadow-lg opacity-0 transition-all duration-300 hover:scale-110 hover:bg-brand-start hover:text-white group-hover:opacity-100"
+          className="absolute left-2 top-1/2 z-30 flex h-10 w-10 -translate-y-1/2 items-center justify-center rounded-full border border-gray-200 bg-white shadow-lg opacity-0 transition-all duration-300 hover:scale-110 hover:bg-[#016ab7] hover:text-white group-hover:opacity-100"
         >
           <RiArrowLeftSLine size={24} />
         </button>
@@ -129,7 +129,7 @@ export default function LogoSlider() {
         {/* Right Arrow */}
         <button
           onClick={() => handleScroll("right")}
-          className="absolute right-2 top-1/2 z-30 flex h-10 w-10 -translate-y-1/2 items-center justify-center rounded-full border border-gray-200 bg-white shadow-lg opacity-0 transition-all duration-300 hover:scale-110 hover:bg-brand-start hover:text-white group-hover:opacity-100"
+          className="absolute right-2 top-1/2 z-30 flex h-10 w-10 -translate-y-1/2 items-center justify-center rounded-full border border-gray-200 bg-white shadow-lg opacity-0 transition-all duration-300 hover:scale-110 hover:bg-[#016ab7] hover:text-white group-hover:opacity-100"
         >
           <RiArrowRightSLine size={24} />
         </button>

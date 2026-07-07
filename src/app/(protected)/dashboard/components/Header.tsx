@@ -5,18 +5,13 @@ import { useState, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
 import { 
   Menu, 
-  Search, 
-  Bell, 
   User, 
   ChevronDown,
   LogOut,
   Settings,
   HelpCircle,
-  Sun,
-  Moon,
   Shield,
   UserCircle,
-  X,
   Loader2
 } from 'lucide-react';
 import { useAppSelector, useAppDispatch } from '../../../../redux/hooks';
@@ -36,8 +31,6 @@ const Header = ({
   const { logout: logoutUser, isAuthenticated } = useAuth();
   
   const [isDropdownOpen, setIsDropdownOpen] = useState(false);
-  const [isDarkMode, setIsDarkMode] = useState(false);
-  const [isSearchOpen, setIsSearchOpen] = useState(false);
   const [isLoggingOut, setIsLoggingOut] = useState(false);
 
   // Handle logout
@@ -86,7 +79,6 @@ const Header = ({
     const handleEsc = (e: KeyboardEvent) => {
       if (e.key === 'Escape') {
         setIsDropdownOpen(false);
-        setIsSearchOpen(false);
       }
     };
     window.addEventListener('keydown', handleEsc);
@@ -116,7 +108,7 @@ const Header = ({
   return (
     <header className="h-16 bg-white border-b border-gray-200 flex items-center justify-between px-3 sm:px-4 md:px-6 flex-shrink-0">
       {/* Left Section */}
-      <div className="flex items-center gap-2 sm:gap-3 md:gap-4 min-w-0 flex-1">
+      <div className="flex items-center gap-2 sm:gap-3 md:gap-4 min-w-0">
         {/* Hamburger Menu Button - Only visible on mobile */}
         <button
           onClick={() => setIsMobileSidebarOpen(true)}
@@ -125,52 +117,10 @@ const Header = ({
         >
           <Menu className="w-5 h-5 text-gray-600" />
         </button>
-        
-        {/* Search - Desktop */}
-        <div className="hidden md:flex items-center gap-2 bg-gray-50 rounded-lg px-3 py-2 flex-1 max-w-md transition-all focus-within:ring-2 focus-within:ring-blue-500 focus-within:bg-white">
-          <Search className="w-4 h-4 text-gray-400 flex-shrink-0" />
-          <input
-            type="text"
-            placeholder="Search..."
-            className="bg-transparent outline-none text-sm text-gray-600 w-full min-w-0 placeholder-gray-400"
-          />
-          <kbd className="hidden sm:inline-block text-xs text-gray-400 bg-gray-200 px-1.5 py-0.5 rounded flex-shrink-0">
-            ⌘K
-          </kbd>
-        </div>
-
-        {/* Search - Mobile */}
-        <button
-          onClick={() => setIsSearchOpen(true)}
-          className="md:hidden p-2 rounded-lg hover:bg-gray-100 transition-colors active:scale-95 ml-auto"
-          aria-label="Search"
-        >
-          <Search className="w-5 h-5 text-gray-600" />
-        </button>
       </div>
 
       {/* Right Section */}
       <div className="flex items-center gap-1 sm:gap-2 md:gap-3 flex-shrink-0">
-        {/* Dark Mode Toggle */}
-        <button
-          onClick={() => setIsDarkMode(!isDarkMode)}
-          className="p-2 rounded-lg hover:bg-gray-100 transition-colors active:scale-95"
-          aria-label="Toggle dark mode"
-        >
-          {isDarkMode ? (
-            <Sun className="w-4 h-4 sm:w-5 sm:h-5 text-gray-600" />
-          ) : (
-            <Moon className="w-4 h-4 sm:w-5 sm:h-5 text-gray-600" />
-          )}
-        </button>
-
-        {/* Notifications */}
-        <button className="p-2 rounded-lg hover:bg-gray-100 transition-colors relative active:scale-95">
-          <Bell className="w-4 h-4 sm:w-5 sm:h-5 text-gray-600" />
-          <span className="absolute top-1.5 right-1.5 w-2 h-2 bg-red-500 rounded-full ring-2 ring-white animate-pulse"></span>
-          <span className="sr-only">Notifications</span>
-        </button>
-
         {/* User Profile */}
         <div className="relative">
           <button
@@ -269,31 +219,6 @@ const Header = ({
           )}
         </div>
       </div>
-
-      {/* Mobile Search Modal */}
-      {isSearchOpen && (
-        <div className="fixed inset-0 z-50 bg-white md:hidden animate-fadeIn">
-          <div className="flex items-center gap-3 p-4 border-b border-gray-200">
-            <Search className="w-5 h-5 text-gray-400 flex-shrink-0" />
-            <input
-              type="text"
-              placeholder="Search..."
-              className="flex-1 outline-none text-base text-gray-900"
-              autoFocus
-            />
-            <button
-              onClick={() => setIsSearchOpen(false)}
-              className="p-2 rounded-lg hover:bg-gray-100 transition-colors active:scale-95"
-              aria-label="Close search"
-            >
-              <X className="w-5 h-5 text-gray-500" />
-            </button>
-          </div>
-          <div className="p-4">
-            <p className="text-sm text-gray-500">Recent searches will appear here</p>
-          </div>
-        </div>
-      )}
     </header>
   );
 };

@@ -28,8 +28,6 @@ const footerLinks = {
     { name: "FAQs", href: "/faqs" },
     { name: "Privacy Policy", href: "/privacy-policy" },
     { name: "Terms & Conditions", href: "/terms-conditions" },
-    { name: "Refund Policy", href: "/refund-policy" },
-    { name: "Shipping Policy", href: "/shipping-policy" },
   ],
 };
 
@@ -98,7 +96,7 @@ export default function Footer() {
                 <br />
                 <a
                   href="tel:+919910899060"
-                  className="hover:underline hover:text-brand-start"
+                  className="hover:underline hover:text-[#016ab7]"
                 >
                   +91 99108 99060
                 </a>
@@ -108,7 +106,7 @@ export default function Footer() {
                 <br />
                 <a
                   href="mailto:support@shikshanation.com"
-                  className="hover:underline hover:text-brand-start"
+                  className="hover:underline hover:text-[#016ab7]"
                 >
                   support@shikshanation.com
                 </a>
@@ -139,7 +137,7 @@ export default function Footer() {
                     <li key={link.name}>
                       <Link
                         href={link.href}
-                        className="text-slate-600 hover:text-brand-start transition-colors"
+                        className="text-slate-600 hover:text-[#016ab7] transition-colors"
                       >
                         {link.name}
                       </Link>
@@ -162,7 +160,7 @@ export default function Footer() {
                   <a
                     key={index}
                     href={app.href}
-                    className="flex items-center gap-3 px-4 py-2.5 bg-white border border-slate-200 rounded-lg hover:border-brand-start hover:shadow-md transition-all text-sm text-slate-700 hover:text-brand-start"
+                    className="flex items-center gap-3 px-4 py-2.5 bg-white border border-slate-200 rounded-lg hover:border-[#016ab7] hover:shadow-md transition-all text-sm text-slate-700 hover:text-[#016ab7]"
                   >
                     <Icon className="h-5 w-5 flex-shrink-0" />
                     <span>{app.label}</span>
@@ -189,7 +187,7 @@ export default function Footer() {
                   target="_blank"
                   rel="noopener noreferrer"
                   aria-label={item.label}
-                  className="h-8 w-8 flex items-center justify-center rounded-full border border-slate-200 text-slate-500 transition-all hover:border-brand-start hover:text-brand-start hover:bg-brand-start-soft"
+                  className="h-8 w-8 flex items-center justify-center rounded-full border border-slate-200 text-slate-500 transition-all hover:border-[#016ab7] hover:text-[#016ab7] hover:bg-[#016ab7]/10"
                 >
                   <Icon className="text-xs" />
                 </a>

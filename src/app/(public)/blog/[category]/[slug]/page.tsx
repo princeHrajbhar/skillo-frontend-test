@@ -227,15 +227,6 @@ const BlogDetailPage = () => {
     }
   };
 
-  // Format price
-  const formatPrice = (price: number, currency: string) => {
-    return new Intl.NumberFormat('en-IN', {
-      style: 'currency',
-      currency: currency || 'INR',
-      minimumFractionDigits: 0,
-    }).format(price);
-  };
-
   if (isLoading) {
     return (
       <div className="min-h-screen bg-gray-50 py-8">
@@ -288,7 +279,7 @@ const BlogDetailPage = () => {
           <p className="text-gray-600 mb-6">The article you're looking for doesn't exist or has been removed.</p>
           <Link
             href="/blog"
-            className="inline-flex items-center px-6 py-3 bg-gradient-to-r from-[#016ab7] to-[#6cb84d] text-white rounded-lg hover:shadow-lg hover:shadow-[#016ab7]/25 transition-all"
+            className="inline-flex items-center px-6 py-3 bg-[#016ab7] text-white rounded-lg hover:bg-[#0158a0] hover:shadow-lg hover:shadow-[#016ab7]/25 transition-all"
           >
             <ArrowLeftIcon className="h-5 w-5 mr-2" />
             Back to Blog
@@ -317,7 +308,7 @@ const BlogDetailPage = () => {
             className="w-full h-full object-cover"
           />
         ) : (
-          <div className="w-full h-full flex items-center justify-center bg-gradient-to-r from-[#016ab7] to-[#6cb84d]">
+          <div className="w-full h-full flex items-center justify-center bg-[#016ab7]">
             <BookOpenIcon className="h-16 w-16 sm:h-20 sm:w-20 md:h-24 md:w-24 text-white/50" />
           </div>
         )}
@@ -369,7 +360,6 @@ const BlogDetailPage = () => {
                       Table of Contents
                     </h3>
                     <nav className="space-y-0.5">
-                      {/* BUG-024 FIXED: Show only H2 and H3 headings, limit to 10 items */}
                       {headings
                         .filter(h => h.level === 2 || h.level === 3)
                         .slice(0, 10)
@@ -385,7 +375,7 @@ const BlogDetailPage = () => {
                               onClick={() => scrollToHeading(heading.id)}
                               className={`block w-full text-left px-2 py-1.5 rounded transition-all ${paddingLeft} ${fontSize} ${fontWeight} ${
                                 isActive
-                                  ? 'bg-gradient-to-r from-[#016ab7]/10 to-[#6cb84d]/10 text-[#016ab7] border-l-2 border-[#016ab7]'
+                                  ? 'bg-[#016ab7]/10 text-[#016ab7] border-l-2 border-[#016ab7]'
                                   : 'text-gray-600 hover:bg-gray-50 hover:text-[#016ab7]'
                               }`}
                             >
@@ -412,7 +402,7 @@ const BlogDetailPage = () => {
                       {blog.category && (
                         <Link
                           href={`/blog/${blog.category.toLowerCase()}`}
-                          className="inline-block bg-gradient-to-r from-[#016ab7]/10 to-[#6cb84d]/10 text-[#016ab7] text-xs sm:text-sm font-medium px-2.5 sm:px-3 py-1 rounded-full hover:from-[#016ab7]/20 hover:to-[#6cb84d]/20 transition-colors"
+                          className="inline-block bg-[#016ab7]/10 text-[#016ab7] text-xs sm:text-sm font-medium px-2.5 sm:px-3 py-1 rounded-full hover:bg-[#016ab7]/20 transition-colors"
                         >
                           {blog.category}
                         </Link>
@@ -459,8 +449,6 @@ const BlogDetailPage = () => {
                     className="blog-content prose prose-sm sm:prose-base lg:prose-lg max-w-none"
                     dangerouslySetInnerHTML={{ __html: sanitizedContent }}
                   />
-
-                  {/* BUG-027 FIXED: FAQ Section Removed */}
                 </div>
               </article>
 
@@ -498,7 +486,6 @@ const BlogDetailPage = () => {
                         </h3>
                       </div>
                       <div className="space-y-2 sm:space-y-3">
-                        {/* BUG-023 FIXED: Show only 3 items, static display */}
                         {relatedBlogs.slice(0, 3).map((relatedBlog) => (
                           <Link
                             key={relatedBlog._id}
@@ -514,7 +501,7 @@ const BlogDetailPage = () => {
                                     className="w-full h-full object-cover"
                                   />
                                 ) : (
-                                  <div className="w-full h-full flex items-center justify-center bg-gradient-to-r from-[#016ab7]/20 to-[#6cb84d]/20">
+                                  <div className="w-full h-full flex items-center justify-center bg-[#016ab7]/20">
                                     <BookOpenIcon className="h-6 w-6 sm:h-7 sm:w-7 text-[#016ab7]" />
                                   </div>
                                 )}
@@ -547,7 +534,7 @@ const BlogDetailPage = () => {
                     </div>
                   )}
 
-                  {/* BUG-025 FIXED: Course image tabs are now smaller */}
+                  {/* Suggested Courses - Images and Price Removed */}
                   {suggestedCourses.length > 0 && (
                     <div className="bg-white rounded-lg shadow-sm border border-gray-100 p-3 sm:p-4">
                       <h3 className="text-xs sm:text-sm font-semibold text-gray-700 uppercase tracking-wider mb-2 sm:mb-3 sticky top-0 bg-white z-10 py-1">
@@ -560,36 +547,12 @@ const BlogDetailPage = () => {
                             href={`/course/${suggestedCourse.slug}`}
                             className="block group"
                           >
-                            {/* BUG-025 FIXED: Smaller course image tabs */}
-                            <div className="flex items-center gap-2 sm:gap-3 p-1.5 sm:p-2 rounded-lg hover:bg-gray-50 transition-colors -mx-1.5 sm:-mx-2">
-                              <div className="w-10 h-10 sm:w-12 sm:h-12 rounded-lg overflow-hidden flex-shrink-0 bg-gray-100">
-                                {suggestedCourse.bannerImage?.url ? (
-                                  <img
-                                    src={suggestedCourse.bannerImage.url}
-                                    alt={suggestedCourse.title}
-                                    className="w-full h-full object-cover"
-                                  />
-                                ) : (
-                                  <div className="w-full h-full flex items-center justify-center bg-gradient-to-r from-[#016ab7] to-[#6cb84d]">
-                                    <AcademicCapIcon className="h-5 w-5 sm:h-6 sm:w-6 text-white/50" />
-                                  </div>
-                                )}
-                              </div>
+                            <div className="p-2 sm:p-3 rounded-lg hover:bg-gray-50 transition-colors -mx-1.5 sm:-mx-2">
                               <div className="flex-1 min-w-0">
                                 <h4 className="text-xs sm:text-sm font-medium text-gray-900 group-hover:text-[#016ab7] transition-colors line-clamp-1">
                                   {suggestedCourse.title}
                                 </h4>
                                 <p className="text-[10px] sm:text-xs text-gray-500 mt-0.5 line-clamp-1">{suggestedCourse.category}</p>
-                                <div className="flex items-center gap-1.5 sm:gap-2 mt-0.5">
-                                  <span className="text-xs sm:text-sm font-bold text-[#016ab7]">
-                                    {formatPrice(suggestedCourse.discountedPrice, suggestedCourse.currency)}
-                                  </span>
-                                  {suggestedCourse.discountedPrice < suggestedCourse.price && (
-                                    <span className="text-[10px] sm:text-xs text-gray-400 line-through">
-                                      {formatPrice(suggestedCourse.price, suggestedCourse.currency)}
-                                    </span>
-                                  )}
-                                </div>
                               </div>
                             </div>
                           </Link>
@@ -597,7 +560,7 @@ const BlogDetailPage = () => {
                       </div>
                       <Link
                         href="/course"
-                        className="mt-2 sm:mt-3 w-full px-3 sm:px-4 py-1.5 sm:py-2 bg-gradient-to-r from-[#016ab7]/10 to-[#6cb84d]/10 hover:from-[#016ab7]/20 hover:to-[#6cb84d]/20 text-[#016ab7] rounded-lg text-xs sm:text-sm font-medium transition-colors flex items-center justify-center gap-1.5 sm:gap-2"
+                        className="mt-2 sm:mt-3 w-full px-3 sm:px-4 py-1.5 sm:py-2 bg-[#016ab7]/10 hover:bg-[#016ab7]/20 text-[#016ab7] rounded-lg text-xs sm:text-sm font-medium transition-colors flex items-center justify-center gap-1.5 sm:gap-2"
                       >
                         View All Courses
                         <ChevronRightIcon className="h-3 w-3 sm:h-3.5 sm:w-3.5" />

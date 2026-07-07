@@ -136,7 +136,7 @@ const BlogListingPage = () => {
           <p className="text-gray-600">Failed to load blog posts. Please try again later.</p>
           <button
             onClick={() => window.location.reload()}
-            className="mt-4 px-6 py-2 bg-gradient-to-r from-[#016ab7] to-[#6cb84d] text-white rounded-lg hover:shadow-lg hover:shadow-[#016ab7]/25 transition-all"
+            className="mt-4 px-6 py-2 bg-[#016ab7] text-white rounded-lg hover:bg-[#0158a0] hover:shadow-lg hover:shadow-[#016ab7]/25 transition-all"
           >
             Retry
           </button>
@@ -188,7 +188,7 @@ const BlogListingPage = () => {
               }}
               className={`px-3 py-1.5 text-xs font-medium rounded-full transition-all ${
                 selectedCategory === ''
-                  ? 'bg-gradient-to-r from-[#016ab7] to-[#6cb84d] text-white shadow-sm shadow-[#016ab7]/25'
+                  ? 'bg-[#016ab7] text-white shadow-sm shadow-[#016ab7]/25'
                   : 'bg-gray-200 text-gray-700 hover:bg-gray-300'
               }`}
             >
@@ -203,7 +203,7 @@ const BlogListingPage = () => {
                 }}
                 className={`px-3 py-1.5 text-xs font-medium rounded-full transition-all ${
                   selectedCategory === category
-                    ? 'bg-gradient-to-r from-[#016ab7] to-[#6cb84d] text-white shadow-sm shadow-[#016ab7]/25'
+                    ? 'bg-[#016ab7] text-white shadow-sm shadow-[#016ab7]/25'
                     : 'bg-gray-200 text-gray-700 hover:bg-gray-300'
                 }`}
               >
@@ -212,8 +212,6 @@ const BlogListingPage = () => {
             ))}
           </div>
         )}
-
-        {/* REMOVED: Stats Section with Articles and Categories count */}
 
         {/* Results Count */}
         <div className="flex items-center justify-between mb-6">
@@ -284,7 +282,7 @@ const BlogListingPage = () => {
             {(searchTerm || selectedCategory) && (
               <button
                 onClick={clearFilters}
-                className="mt-4 px-6 py-2 bg-gradient-to-r from-[#016ab7] to-[#6cb84d] text-white rounded-lg hover:shadow-lg hover:shadow-[#016ab7]/25 transition-all"
+                className="mt-4 px-6 py-2 bg-[#016ab7] text-white rounded-lg hover:bg-[#0158a0] hover:shadow-lg hover:shadow-[#016ab7]/25 transition-all"
               >
                 Clear Filters
               </button>
@@ -298,23 +296,21 @@ const BlogListingPage = () => {
                 href={`/blog/${blog.category?.toLowerCase() || 'uncategorized'}/${blog.slug}`}
                 className="group bg-white rounded-2xl border border-gray-200 shadow-sm hover:shadow-xl transition-all duration-300 overflow-hidden hover:border-[#016ab7]/30"
               >
-                <div className="relative h-48 overflow-hidden">
+                {/* Image with fixed aspect ratio like course cards */}
+                <div className="relative w-full pt-[56.25%] bg-gray-100 overflow-hidden">
                   {blog.banner?.url ? (
                     <Image
                       src={blog.banner.url}
                       alt={blog.title}
                       fill
-                      className="object-cover group-hover:scale-105 transition-transform duration-300"
+                      sizes="(max-width: 640px) 100vw, (max-width: 768px) 50vw, (max-width: 1024px) 33vw, 25vw"
+                      className="object-cover group-hover:scale-105 transition-transform duration-500"
+                      priority={false}
                     />
                   ) : (
-                    <div className="w-full h-full bg-gradient-to-br from-[#016ab7] to-[#6cb84d] flex items-center justify-center">
-                      <span className="text-4xl font-bold text-white/50">📄</span>
+                    <div className="absolute inset-0 bg-[#016ab7] flex items-center justify-center">
+                      <BookOpenIcon className="h-12 w-12 text-white/50" />
                     </div>
-                  )}
-                  {blog.category && (
-                    <span className="absolute top-4 left-4 bg-white/90 backdrop-blur-sm text-gray-800 text-sm font-medium px-3 py-1 rounded-full">
-                      {blog.category}
-                    </span>
                   )}
                 </div>
 
@@ -370,7 +366,7 @@ const BlogListingPage = () => {
               <button
                 onClick={() => handlePageChange(currentPage - 1)}
                 disabled={currentPage === 1}
-                className="p-2 border border-gray-300 rounded-lg hover:bg-gradient-to-r hover:from-[#016ab7] hover:to-[#6cb84d] hover:text-white disabled:opacity-50 disabled:cursor-not-allowed transition-colors bg-white"
+                className="p-2 border border-gray-300 rounded-lg hover:bg-[#016ab7] hover:text-white disabled:opacity-50 disabled:cursor-not-allowed transition-colors bg-white"
               >
                 <ChevronLeftIcon className="h-4 w-4" />
               </button>
@@ -380,7 +376,7 @@ const BlogListingPage = () => {
               <button
                 onClick={() => handlePageChange(currentPage + 1)}
                 disabled={currentPage === totalPages}
-                className="p-2 border border-gray-300 rounded-lg hover:bg-gradient-to-r hover:from-[#016ab7] hover:to-[#6cb84d] hover:text-white disabled:opacity-50 disabled:cursor-not-allowed transition-colors bg-white"
+                className="p-2 border border-gray-300 rounded-lg hover:bg-[#016ab7] hover:text-white disabled:opacity-50 disabled:cursor-not-allowed transition-colors bg-white"
               >
                 <ChevronRightIcon className="h-4 w-4" />
               </button>

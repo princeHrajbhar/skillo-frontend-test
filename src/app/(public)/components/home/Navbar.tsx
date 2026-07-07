@@ -97,8 +97,10 @@ export default function Navbar() {
   const [hoveredCategory, setHoveredCategory] = useState<string | null>(null);
   const [mobileMenu, setMobileMenu] = useState(false);
   const [expandedCategory, setExpandedCategory] = useState<string | null>(null);
+  const [showPopup, setShowPopup] = useState(false);
   
   const hoverTimeoutRef = useRef<NodeJS.Timeout | null>(null);
+  const popupTimeoutRef = useRef<NodeJS.Timeout | null>(null);
 
   useEffect(() => {
     setActiveDropdown(null);
@@ -144,10 +146,24 @@ export default function Navbar() {
     if (hoverTimeoutRef.current) clearTimeout(hoverTimeoutRef.current); 
   };
 
-  // Get courses for hovered category
-  const getHoveredCategoryCourses = (categoryName: string) => {
-    const category = categoriesData.find(c => c.name === categoryName);
-    return category?.courses || [];
+  const handleLoginClick = (e: React.MouseEvent) => {
+    e.preventDefault();
+    setShowPopup(true);
+    
+    // Auto-hide popup after 3 seconds
+    if (popupTimeoutRef.current) {
+      clearTimeout(popupTimeoutRef.current);
+    }
+    popupTimeoutRef.current = setTimeout(() => {
+      setShowPopup(false);
+    }, 3000);
+  };
+
+  const handleClosePopup = () => {
+    setShowPopup(false);
+    if (popupTimeoutRef.current) {
+      clearTimeout(popupTimeoutRef.current);
+    }
   };
 
   return (
@@ -180,61 +196,27 @@ export default function Navbar() {
                   }}
                   className={`flex items-center gap-1.5 rounded-lg px-5 py-2.5 text-sm font-medium transition-all ${
                     activeDropdown === "categories" 
-                      ? "bg-gradient-to-r from-[#016ab7]/10 to-[#6cb84d]/10 text-[#016ab7]" 
+                      ? "bg-[#016ab7]/10 text-[#016ab7]" 
                       : "text-slate-600 hover:bg-slate-50 hover:text-[#016ab7]"
                   }`}
                 >
                   Explore Courses <FaChevronDown className={`text-[10px] transition-transform duration-200 ${activeDropdown === "categories" ? "rotate-180" : ""}`} />
                 </button>
                 {activeDropdown === "categories" && (
-                  <div className="absolute left-0 top-full mt-2 w-[580px] bg-white rounded-xl shadow-xl border border-slate-100 overflow-hidden">
-                    <div className="flex">
-                      <div className="w-[280px] p-4 bg-white">
-                        <div className="text-xs font-semibold text-[#016ab7] uppercase tracking-wider mb-2 px-2">Categories</div>
-                        <div className="space-y-0.5">
-                          {categoriesData.map((category) => (
-                            <button 
-                              key={category.name} 
-                              onClick={() => handleCategoryClick(category.slug)} 
-                              onMouseEnter={() => setHoveredCategory(category.name)} 
-                              className={`w-full flex items-center gap-3 rounded-lg px-3 py-2.5 transition-all ${
-                                hoveredCategory === category.name ? "bg-gradient-to-r from-[#016ab7]/10 to-[#6cb84d]/10 text-[#016ab7]" : "hover:bg-slate-50 text-slate-700"
-                              }`}
-                            >
-                              <span className="text-sm font-medium flex-1 text-left">{category.name}</span>
-                              {hoveredCategory === category.name && <FaArrowRight className="w-3 h-3 text-[#6cb84d]" />}
-                            </button>
-                          ))}
-                        </div>
-                      </div>
-                      <div className="w-[280px] bg-gradient-to-br from-slate-50 to-white border-l border-slate-100 p-4" onMouseEnter={handleRightColumnEnter}>
-                        {hoveredCategory ? (
-                          <div>
-                            <div className="flex items-center justify-between mb-3 pb-2 border-b border-slate-200">
-                              <div className="text-xs font-semibold text-[#016ab7] uppercase tracking-wider">Available Courses</div>
-                            </div>
-                            <div className="space-y-1 max-h-[320px] overflow-y-auto pr-1">
-                              {getHoveredCategoryCourses(hoveredCategory).map((course) => {
-                                const category = categoriesData.find(c => c.name === hoveredCategory);
-                                return (
-                                  <button 
-                                    key={course.name} 
-                                    onClick={() => handleCourseClick(category?.slug || '', course.slug)} 
-                                    className="w-full text-left flex items-center gap-2 px-2 py-2 text-sm text-slate-600 hover:text-[#016ab7] hover:bg-white rounded-lg transition-colors group"
-                                  >
-                                    <span className="w-1.5 h-1.5 bg-gradient-to-r from-[#016ab7] to-[#6cb84d] rounded-full group-hover:scale-125 transition-transform"></span>
-                                    {course.name}
-                                  </button>
-                                );
-                              })}
-                            </div>
-                          </div>
-                        ) : (
-                          <div className="flex flex-col items-center justify-center py-12 text-slate-400">
-                            <FaGraduationCap className="w-8 h-8 mb-4" />
-                            <p className="text-sm font-medium">Hover over any category</p>
-                          </div>
-                        )}
+                  <div className="absolute left-0 top-full mt-2 w-[320px] bg-white rounded-xl shadow-xl border border-slate-100 overflow-hidden">
+                    <div className="p-4">
+                      <div className="text-xs font-semibold text-[#016ab7] uppercase tracking-wider mb-2 px-2">Categories</div>
+                      <div className="space-y-0.5">
+                        {categoriesData.map((category) => (
+                          <button 
+                            key={category.name} 
+                            onClick={() => handleCategoryClick(category.slug)} 
+                            className={`w-full flex items-center gap-3 rounded-lg px-3 py-2.5 transition-all hover:bg-[#016ab7]/10 hover:text-[#016ab7] text-slate-700`}
+                          >
+                            <span className="text-sm font-medium flex-1 text-left">{category.name}</span>
+                            <FaArrowRight className="w-3 h-3 text-[#016ab7] opacity-0 group-hover:opacity-100 transition-opacity" />
+                          </button>
+                        ))}
                       </div>
                     </div>
                   </div>
@@ -253,10 +235,13 @@ export default function Navbar() {
             </nav>
 
             {/* Login Button */}
-            <Link href="/login" className="hidden lg:flex items-center gap-2 rounded-lg bg-gradient-to-r from-[#016ab7] to-[#6cb84d] px-6 py-2.5 text-sm font-semibold text-white hover:shadow-lg hover:shadow-[#016ab7]/25 transition-all">
+            <button 
+              onClick={handleLoginClick}
+              className="hidden lg:flex items-center gap-2 rounded-lg bg-[#016ab7] px-6 py-2.5 text-sm font-semibold text-white hover:bg-[#0158a0] hover:shadow-lg hover:shadow-[#016ab7]/25 transition-all cursor-pointer"
+            >
               <FaSignInAlt className="w-4 h-4" />
               Login
-            </Link>
+            </button>
 
             <button onClick={() => setMobileMenu(!mobileMenu)} className="lg:hidden p-2 text-slate-600 hover:bg-slate-100 rounded-lg">
               {mobileMenu ? <FaTimes size={20} /> : <FaBars size={20} />}
@@ -320,7 +305,7 @@ export default function Navbar() {
                           <button 
                             key={course.name} 
                             onClick={() => { handleCourseClick(category.slug, course.slug); }} 
-                            className="block w-full text-left px-3 py-2 text-sm text-slate-600 hover:text-[#016ab7] hover:bg-gradient-to-r hover:from-[#016ab7]/5 hover:to-[#6cb84d]/5 rounded-lg transition"
+                            className="block w-full text-left px-3 py-2 text-sm text-slate-600 hover:text-[#016ab7] hover:bg-[#016ab7]/5 rounded-lg transition"
                           >
                             {course.name}
                           </button>
@@ -344,12 +329,50 @@ export default function Navbar() {
           </div>
 
           {/* Login Button */}
-          <Link href="/login" onClick={() => setMobileMenu(false)} className="flex items-center justify-center gap-2 w-full rounded-xl bg-gradient-to-r from-[#016ab7] to-[#6cb84d] py-3 text-sm font-semibold text-white mt-4 hover:shadow-lg hover:shadow-[#016ab7]/25 transition-all">
+          <button 
+            onClick={(e) => {
+              e.preventDefault();
+              setMobileMenu(false);
+              handleLoginClick(e);
+            }} 
+            className="flex items-center justify-center gap-2 w-full rounded-xl bg-[#016ab7] py-3 text-sm font-semibold text-white mt-4 hover:bg-[#0158a0] hover:shadow-lg hover:shadow-[#016ab7]/25 transition-all cursor-pointer"
+          >
             <FaSignInAlt className="w-4 h-4" />
             Login
-          </Link>
+          </button>
         </div>
       </div>
+
+      {/* Popup Notification */}
+      {showPopup && (
+        <div className="fixed inset-0 z-[200] flex items-center justify-center px-4">
+          <div className="absolute inset-0 bg-black/50 backdrop-blur-sm" onClick={handleClosePopup}></div>
+          <div className="relative bg-white rounded-2xl shadow-2xl max-w-md w-full p-6 transform transition-all animate-in fade-in zoom-in">
+            <button 
+              onClick={handleClosePopup}
+              className="absolute top-4 right-4 text-slate-400 hover:text-slate-600 transition-colors"
+            >
+              <FaTimes size={20} />
+            </button>
+            <div className="text-center">
+              <div className="w-16 h-16 bg-[#016ab7] rounded-full flex items-center justify-center mx-auto mb-4">
+                <FaSignInAlt className="w-8 h-8 text-white" />
+              </div>
+              <h3 className="text-xl font-bold text-slate-800 mb-2">We're Working On It!</h3>
+              <p className="text-slate-600 mb-6">
+                The login feature is currently under development. 
+                We'll have it ready for you soon!
+              </p>
+              <button 
+                onClick={handleClosePopup}
+                className="px-6 py-2 bg-[#016ab7] text-white rounded-lg font-medium hover:bg-[#0158a0] hover:shadow-lg transition-all"
+              >
+                Got it
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
     </header>
   );
 }

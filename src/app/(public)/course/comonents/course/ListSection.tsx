@@ -11,7 +11,6 @@ import {
   Award,
   ChevronRight,
   ChevronLeft,
-  Heart,
   ShoppingBag,
   Star,
   BookOpen,
@@ -102,24 +101,9 @@ const careerPaths = [
 
 const CourseCard: React.FC<{
   course: ICourse;
-  isWishlisted: boolean;
-  onWishlistToggle: (courseId: string, e: React.MouseEvent) => void;
-}> = ({ course, isWishlisted, onWishlistToggle }) => {
+}> = ({ course }) => {
   const discount = calculateDiscount(course.price, course.discountedPrice);
   const categorySlug = course.category.toLowerCase().replace(/\s+/g, '-');
-
-  const getLevel = () => {
-    const levels = ['Beginner', 'Intermediate', 'Advanced'];
-    return levels[Math.floor(Math.random() * levels.length)];
-  };
-
-  const getDuration = () => {
-    const durations = ['3 months', '4 months', '6 months', '8 months', '12 months'];
-    return durations[Math.floor(Math.random() * durations.length)];
-  };
-
-  const rating = (4.5 + Math.random() * 0.5).toFixed(1);
-  const reviews = Math.floor(100 + Math.random() * 9000);
 
   return (
     <Link
@@ -139,33 +123,14 @@ const CourseCard: React.FC<{
               priority={false}
             />
           ) : (
-            <div className="absolute inset-0 bg-gradient-to-br from-[#016ab7] to-[#6cb84d] flex items-center justify-center">
+            <div className="absolute inset-0 bg-[#016ab7] flex items-center justify-center">
               <BookOpen className="h-12 w-12 text-white/50" />
             </div>
           )}
 
-          {/* Level Badge */}
-          <div className="absolute top-3 left-3 z-10">
-            <span className="bg-white/90 backdrop-blur-sm text-[#016ab7] text-xs font-medium px-3 py-1 rounded-full shadow-sm">
-              {getLevel()}
-            </span>
-          </div>
-
-          {/* Wishlist Button */}
-          <button
-            onClick={(e) => onWishlistToggle(course._id, e)}
-            className="absolute top-3 right-3 z-10 p-2 bg-white/90 backdrop-blur-sm rounded-full hover:bg-white transition-colors shadow-sm"
-          >
-            <Heart
-              className={`h-4 w-4 transition-colors ${
-                isWishlisted ? 'fill-red-500 text-red-500' : 'text-gray-600 hover:text-red-500'
-              }`}
-            />
-          </button>
-
           {/* Discount Badge */}
           {discount > 0 && (
-            <div className="absolute bottom-3 right-3 z-10 bg-gradient-to-r from-[#016ab7] to-[#6cb84d] text-white text-xs font-bold px-3 py-1 rounded-full shadow-lg">
+            <div className="absolute bottom-3 right-3 z-10 bg-[#016ab7] text-white text-xs font-bold px-3 py-1 rounded-full shadow-lg">
               {discount}% OFF
             </div>
           )}
@@ -186,40 +151,8 @@ const CourseCard: React.FC<{
             {course.shortDescription}
           </p>
 
-          {/* Rating */}
-          <div className="flex items-center gap-2 mb-2">
-            <div className="flex items-center">
-              <Star className="h-3.5 w-3.5 fill-yellow-400 text-yellow-400" />
-              <span className="text-sm font-semibold text-gray-700 ml-1">{rating}</span>
-            </div>
-            <span className="text-xs text-gray-400 truncate">({reviews.toLocaleString()} reviews)</span>
-          </div>
-
-          {/* Skills Tags */}
-          {course.keywords && course.keywords.length > 0 && (
-            <div className="flex flex-wrap gap-1.5 mb-3">
-              {course.keywords.slice(0, 3).map((keyword) => (
-                <span
-                  key={keyword}
-                  className="bg-gray-100 text-gray-600 text-[10px] px-2 py-0.5 rounded-full truncate max-w-[80px]"
-                >
-                  {keyword}
-                </span>
-              ))}
-              {course.keywords.length > 3 && (
-                <span className="text-gray-400 text-[10px] flex-shrink-0">+{course.keywords.length - 3}</span>
-              )}
-            </div>
-          )}
-
-          {/* Duration */}
-          <div className="flex items-center gap-2 text-xs text-gray-400 mb-3">
-            <Clock className="h-3.5 w-3.5 flex-shrink-0" />
-            <span className="truncate">{getDuration()} • Self-paced</span>
-          </div>
-
           {/* Price */}
-          <div className="flex items-center justify-between gap-2">
+          <div className="flex items-center justify-between gap-2 mt-auto">
             <div className="flex items-center gap-2 min-w-0">
               <span className="text-base sm:text-lg font-bold text-[#016ab7] whitespace-nowrap">
                 {formatPrice(course.discountedPrice, course.currency)}
@@ -230,9 +163,9 @@ const CourseCard: React.FC<{
                 </span>
               )}
             </div>
-            <button className="flex-shrink-0 px-3 sm:px-4 py-1.5 sm:py-2 bg-gradient-to-r from-[#016ab7] to-[#6cb84d] hover:shadow-lg hover:shadow-[#016ab7]/25 text-white rounded-xl text-xs sm:text-sm font-medium transition-all hover:scale-105 flex items-center gap-1.5">
+            <button className="flex-shrink-0 px-3 sm:px-4 py-1.5 sm:py-2 bg-[#016ab7] hover:bg-[#0158a0] hover:shadow-lg hover:shadow-[#016ab7]/25 text-white rounded-xl text-xs sm:text-sm font-medium transition-all hover:scale-105 flex items-center gap-1.5">
               <ShoppingBag className="h-3 w-3 sm:h-3.5 sm:w-3.5" />
-              <span className="hidden xs:inline">Enroll</span>
+              <span className="hidden xs:inline">Buy Now</span>
             </button>
           </div>
         </div>
@@ -258,7 +191,6 @@ export default function CourseDiscoveryPage() {
 
   const [searchQuery, setSearchQuery] = useState('');
   const [isSearching, setIsSearching] = useState(false);
-  const [wishlist, setWishlist] = useState<Set<string>>(new Set());
 
   const categoryRefs = useRef<{ [key: string]: HTMLDivElement | null }>({});
 
@@ -296,29 +228,6 @@ export default function CourseDiscoveryPage() {
     );
   }, [courses, searchQuery]);
 
-  const trendingCategories = useMemo(() => {
-    return categories
-      .map((category) => ({
-        name: category,
-        count: groupedCourses[category].length,
-      }))
-      .sort((a, b) => b.count - a.count)
-      .slice(0, 8);
-  }, [categories, groupedCourses]);
-
-  const popularSkills = useMemo(() => {
-    const keywordCount: Record<string, number> = {};
-    courses.forEach((course) => {
-      course.keywords.forEach((keyword) => {
-        keywordCount[keyword] = (keywordCount[keyword] || 0) + 1;
-      });
-    });
-    return Object.entries(keywordCount)
-      .sort((a, b) => b[1] - a[1])
-      .slice(0, 12)
-      .map(([keyword]) => keyword);
-  }, [courses]);
-
   const recommendedCourses = useMemo(() => {
     return [...courses]
       .sort((a, b) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime())
@@ -344,25 +253,6 @@ export default function CourseDiscoveryPage() {
         element.scrollIntoView({ behavior: 'smooth', block: 'start' });
       }
     }, 100);
-  };
-
-  const handleSkillClick = (skill: string) => {
-    setSearchQuery(skill);
-    setIsSearching(true);
-  };
-
-  const toggleWishlist = (courseId: string, e: React.MouseEvent) => {
-    e.preventDefault();
-    e.stopPropagation();
-    setWishlist((prev) => {
-      const newSet = new Set(prev);
-      if (newSet.has(courseId)) {
-        newSet.delete(courseId);
-      } else {
-        newSet.add(courseId);
-      }
-      return newSet;
-    });
   };
 
   const scrollCategory = (category: string, direction: 'left' | 'right') => {
@@ -391,13 +281,6 @@ export default function CourseDiscoveryPage() {
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 space-y-8">
           {/* Search Bar Skeleton */}
           <div className="h-14 bg-white rounded-2xl shadow-sm border border-gray-200 animate-pulse"></div>
-          
-          {/* Skills Skeleton */}
-          <div className="flex flex-wrap gap-3">
-            {[1, 2, 3, 4, 5, 6, 7, 8].map((i) => (
-              <div key={i} className="h-10 w-24 bg-gray-200 rounded-xl animate-pulse"></div>
-            ))}
-          </div>
           
           {/* Course Cards Skeleton */}
           <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4 sm:gap-6">
@@ -431,7 +314,7 @@ export default function CourseDiscoveryPage() {
           <p className="text-gray-600 mb-6">Failed to load courses. Please try again later.</p>
           <button
             onClick={() => window.location.reload()}
-            className="px-6 py-3 bg-gradient-to-r from-[#016ab7] to-[#6cb84d] text-white rounded-xl hover:shadow-lg hover:shadow-[#016ab7]/25 transition-all font-medium"
+            className="px-6 py-3 bg-[#016ab7] text-white rounded-xl hover:bg-[#0158a0] hover:shadow-lg hover:shadow-[#016ab7]/25 transition-all font-medium"
           >
             Retry
           </button>
@@ -496,8 +379,6 @@ export default function CourseDiscoveryPage() {
                 <CourseCard
                   key={course._id}
                   course={course}
-                  isWishlisted={wishlist.has(course._id)}
-                  onWishlistToggle={toggleWishlist}
                 />
               ))}
             </div>
@@ -511,38 +392,10 @@ export default function CourseDiscoveryPage() {
             <p className="text-gray-500 mb-4">Try adjusting your search terms</p>
             <button
               onClick={clearSearch}
-              className="px-6 py-2 bg-gradient-to-r from-[#016ab7] to-[#6cb84d] text-white rounded-lg hover:shadow-lg hover:shadow-[#016ab7]/25 transition-all"
+              className="px-6 py-2 bg-[#016ab7] text-white rounded-lg hover:bg-[#0158a0] hover:shadow-lg hover:shadow-[#016ab7]/25 transition-all"
             >
               Clear Search
             </button>
-          </div>
-        )}
-
-        {/* ============================================
-            POPULAR SKILLS
-            ============================================ */}
-        {!isSearching && popularSkills.length > 0 && (
-          <div className="mb-6 sm:mb-8">
-            <div className="flex items-center justify-between mb-3 sm:mb-4">
-              <div>
-                <h2 className="text-xl sm:text-2xl font-bold text-gray-900">Popular Skills</h2>
-                <p className="text-xs sm:text-sm text-gray-500">Most in-demand skills right now</p>
-              </div>
-            </div>
-            <div className="flex flex-wrap gap-2 sm:gap-3">
-              {popularSkills.map((skill) => (
-                <button
-                  key={skill}
-                  onClick={() => handleSkillClick(skill)}
-                  className="group flex items-center gap-1.5 sm:gap-2 px-3 sm:px-4 py-1.5 sm:py-2 bg-white border border-gray-200 rounded-xl hover:border-[#016ab7] hover:shadow-md transition-all duration-300 text-sm"
-                >
-                  <Tag className="h-3 w-3 sm:h-4 sm:w-4 text-gray-400 group-hover:text-[#016ab7] transition-colors" />
-                  <span className="text-xs sm:text-sm font-medium text-gray-700 group-hover:text-[#016ab7] transition-colors">
-                    {skill}
-                  </span>
-                </button>
-              ))}
-            </div>
           </div>
         )}
 
@@ -566,8 +419,6 @@ export default function CourseDiscoveryPage() {
                   >
                     <CourseCard
                       course={course}
-                      isWishlisted={wishlist.has(course._id)}
-                      onWishlistToggle={toggleWishlist}
                     />
                   </div>
                 ))}
@@ -596,13 +447,6 @@ export default function CourseDiscoveryPage() {
                     <h2 className="text-xl sm:text-2xl font-bold text-gray-900">{category}</h2>
                     <p className="text-xs sm:text-sm text-gray-500">{categoryCourses.length} courses available</p>
                   </div>
-                  <Link
-                    href={`/course/category/${category.toLowerCase().replace(/\s+/g, '-')}`}
-                    className="inline-flex items-center gap-1 text-sm font-medium text-[#016ab7] hover:text-[#6cb84d] transition-colors group"
-                  >
-                    See All
-                    <ChevronRight className="h-4 w-4 group-hover:translate-x-0.5 transition-transform" />
-                  </Link>
                 </div>
 
                 {/* Horizontal Scroll Section */}
@@ -610,7 +454,7 @@ export default function CourseDiscoveryPage() {
                   {/* Left Navigation Button */}
                   <button
                     onClick={() => scrollCategory(category, 'left')}
-                    className="absolute left-0 top-1/2 -translate-y-1/2 z-10 bg-white shadow-lg rounded-full p-1.5 sm:p-2.5 border border-gray-200 text-gray-700 hover:bg-gradient-to-r hover:from-[#016ab7] hover:to-[#6cb84d] hover:text-white transition-all -translate-x-2 sm:-translate-x-4 opacity-0 group-hover:opacity-100 focus:opacity-100 hidden sm:block"
+                    className="absolute left-0 top-1/2 -translate-y-1/2 z-10 bg-white shadow-lg rounded-full p-1.5 sm:p-2.5 border border-gray-200 text-gray-700 hover:bg-[#016ab7] hover:text-white transition-all -translate-x-2 sm:-translate-x-4 opacity-0 group-hover:opacity-100 focus:opacity-100 hidden sm:block"
                   >
                     <ChevronLeft className="h-4 w-4 sm:h-5 sm:w-5" />
                   </button>
@@ -629,8 +473,6 @@ export default function CourseDiscoveryPage() {
                       >
                         <CourseCard
                           course={course}
-                          isWishlisted={wishlist.has(course._id)}
-                          onWishlistToggle={toggleWishlist}
                         />
                       </div>
                     ))}
@@ -639,7 +481,7 @@ export default function CourseDiscoveryPage() {
                   {/* Right Navigation Button */}
                   <button
                     onClick={() => scrollCategory(category, 'right')}
-                    className="absolute right-0 top-1/2 -translate-y-1/2 z-10 bg-white shadow-lg rounded-full p-1.5 sm:p-2.5 border border-gray-200 text-gray-700 hover:bg-gradient-to-r hover:from-[#016ab7] hover:to-[#6cb84d] hover:text-white transition-all translate-x-2 sm:translate-x-4 opacity-0 group-hover:opacity-100 focus:opacity-100 hidden sm:block"
+                    className="absolute right-0 top-1/2 -translate-y-1/2 z-10 bg-white shadow-lg rounded-full p-1.5 sm:p-2.5 border border-gray-200 text-gray-700 hover:bg-[#016ab7] hover:text-white transition-all translate-x-2 sm:translate-x-4 opacity-0 group-hover:opacity-100 focus:opacity-100 hidden sm:block"
                   >
                     <ChevronRight className="h-4 w-4 sm:h-5 sm:w-5" />
                   </button>
