@@ -46,6 +46,7 @@ export default function BlogPage() {
   const [sortOrder, setSortOrder] = useState<'asc' | 'desc'>('desc');
   const [deletingId, setDeletingId] = useState<string | null>(null);
   const [currentPage, setCurrentPage] = useState(1);
+  const [isInitialLoad, setIsInitialLoad] = useState(true);
 
   // Build query params
   const buildParams = (page: number) => {
@@ -64,7 +65,7 @@ export default function BlogPage() {
   };
 
   // Fetch blogs using the hook at the top level
-  const { refetch: refetchBlogs } = useGetBlogs(buildParams(currentPage));
+  const { refetch: refetchBlogs, isFetching } = useGetBlogs(buildParams(currentPage));
   
   // Fetch stats using the hook at the top level
   const { refetch: refetchStats } = useGetBlogStats();
@@ -72,6 +73,10 @@ export default function BlogPage() {
   // Refetch when filters change
   useEffect(() => {
     refetchBlogs();
+    // Mark initial load as complete after first fetch
+    if (isInitialLoad) {
+      setIsInitialLoad(false);
+    }
   }, [currentPage, sortBy, sortOrder, selectedStatus, selectedCategory, refetchBlogs]);
 
   // Debounced search
@@ -158,6 +163,9 @@ export default function BlogPage() {
     setCurrentPage(page);
   };
 
+  // Determine if we should show loading state
+  const showLoading = isLoading || isFetching || isInitialLoad;
+
   return (
     <div className="space-y-6">
       {/* Header */}
@@ -165,8 +173,8 @@ export default function BlogPage() {
         <div>
           <h1 className="text-2xl font-bold text-gray-900">Blog Posts</h1>
           <p className="text-sm text-gray-500 mt-1">
-            {isLoading ? 'Loading...' : `${pagination?.total || 0} blog posts found`}
-            {stats && (
+            {showLoading ? 'Loading...' : `${pagination?.total || 0} blog posts found`}
+            {stats && !showLoading && (
               <span className="ml-4 text-xs">
                 <span className="text-emerald-600">{stats.published} published</span>
                 {' • '}
@@ -215,7 +223,7 @@ export default function BlogPage() {
               onClick={handleRefresh}
               className="p-2.5 border border-gray-300 rounded-xl hover:bg-gray-50 transition-colors text-gray-500"
             >
-              <RefreshCw className={`w-4 h-4 ${isLoading ? 'animate-spin' : ''}`} />
+              <RefreshCw className={`w-4 h-4 ${showLoading ? 'animate-spin' : ''}`} />
             </button>
           </div>
         </div>
@@ -272,7 +280,7 @@ export default function BlogPage() {
 
       {/* Blog Table */}
       <div className="bg-white rounded-xl border border-gray-200 overflow-hidden">
-        {isLoading && blogs.length === 0 ? (
+        {showLoading && blogs.length === 0 ? (
           <div className="flex items-center justify-center py-20">
             <Loader2 className="w-8 h-8 animate-spin text-teal-600" />
           </div>

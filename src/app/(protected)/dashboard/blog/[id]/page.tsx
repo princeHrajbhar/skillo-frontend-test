@@ -267,47 +267,47 @@ export default function EditBlogPage() {
     try {
       console.log('🔄 Updating blog with ID:', id);
       
-      const formDataToSend = new FormData();
+      // Prepare the data as JSON
+      const updateData: any = {
+        title: formData.title,
+        slug: formData.slug,
+        description: formData.description,
+        seoTitle: formData.seoTitle,
+        seoDescription: formData.seoDescription,
+        category: formData.category,
+        postedBy: formData.postedBy,
+        status: formData.status,
+        content: formData.content,
+      };
 
-      formDataToSend.append('title', formData.title);
-      formDataToSend.append('slug', formData.slug);
-      formDataToSend.append('description', formData.description);
-      formDataToSend.append('seoTitle', formData.seoTitle);
-      formDataToSend.append('seoDescription', formData.seoDescription);
-      formDataToSend.append('category', formData.category);
-      formDataToSend.append('postedBy', formData.postedBy);
-      formDataToSend.append('status', formData.status);
-      formDataToSend.append('content', formData.content);
-
-      const keywords = formData.keywords.split(',').map(k => k.trim()).filter(k => k);
-      keywords.forEach(keyword => {
-        formDataToSend.append('keyword[]', keyword);
-      });
-
-      faqs.forEach((faq, index) => {
-        formDataToSend.append(`faq[${index}][question]`, faq.question);
-        formDataToSend.append(`faq[${index}][answer]`, faq.answer);
-      });
-
-      socialMediaLinks.forEach((link, index) => {
-        formDataToSend.append(`socialMediaLinks[${index}][platform]`, link.platform);
-        formDataToSend.append(`socialMediaLinks[${index}][url]`, link.url);
-      });
-
-      resourceLinks.forEach((link, index) => {
-        formDataToSend.append(`resourceLinks[${index}][title]`, link.title);
-        formDataToSend.append(`resourceLinks[${index}][url]`, link.url);
-      });
-
-      if (bannerFile) {
-        formDataToSend.append('banner', bannerFile);
+      // Add keywords if present
+      if (formData.keywords) {
+        updateData.keyword = formData.keywords.split(',').map(k => k.trim()).filter(k => k);
       }
 
-      resourceFiles.forEach(file => {
-        formDataToSend.append('resources', file);
-      });
+      // Add FAQ if any have content
+      const validFaqs = faqs.filter(faq => faq.question.trim() && faq.answer.trim());
+      if (validFaqs.length > 0) {
+        updateData.faq = validFaqs;
+      }
 
-      const result = await updateBlog({ id, body: formDataToSend });
+      // Add social media links if any have content
+      const validSocialLinks = socialMediaLinks.filter(link => link.platform.trim() && link.url.trim());
+      if (validSocialLinks.length > 0) {
+        updateData.socialMediaLinks = validSocialLinks;
+      }
+
+      // Add resource links if any have content
+      const validResourceLinks = resourceLinks.filter(link => link.title.trim() && link.url.trim());
+      if (validResourceLinks.length > 0) {
+        updateData.resourceLinks = validResourceLinks;
+      }
+
+      console.log('📤 Sending update data:', updateData);
+
+      // Send as JSON
+      const result = await updateBlog({ id, body: updateData });
+      
       console.log('✅ Blog updated:', result);
       
       setResponse(result);

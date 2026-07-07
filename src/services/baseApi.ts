@@ -4,7 +4,7 @@ import type { BaseQueryFn, FetchArgs, FetchBaseQueryError } from '@reduxjs/toolk
 
 // Resolve the API base URL
 const resolveApiBaseUrl = (): string => {
-  const raw = (process.env.NEXT_PUBLIC_API_URL || 'https://skillo-backend-test.onrender.com/api/v1')
+  const raw = (process.env.NEXT_PUBLIC_API_URL || 'http://localhost:5000/api/v1')
     .trim()
     .replace(/\/+$/, '');
   return raw.endsWith('/api/v1') ? raw : `${raw}/api/v1`;
