@@ -102,7 +102,6 @@ const careerPaths = [
 const CourseCard: React.FC<{
   course: ICourse;
 }> = ({ course }) => {
-  const discount = calculateDiscount(course.price, course.discountedPrice);
   const categorySlug = course.category.toLowerCase().replace(/\s+/g, '-');
 
   return (
@@ -125,13 +124,6 @@ const CourseCard: React.FC<{
           ) : (
             <div className="absolute inset-0 bg-[#016ab7] flex items-center justify-center">
               <BookOpen className="h-12 w-12 text-white/50" />
-            </div>
-          )}
-
-          {/* Discount Badge */}
-          {discount > 0 && (
-            <div className="absolute bottom-3 right-3 z-10 bg-[#016ab7] text-white text-xs font-bold px-3 py-1 rounded-full shadow-lg">
-              {discount}% OFF
             </div>
           )}
         </div>
@@ -231,7 +223,7 @@ export default function CourseDiscoveryPage() {
   const recommendedCourses = useMemo(() => {
     return [...courses]
       .sort((a, b) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime())
-      .slice(0, 10);
+      .slice(0, 3);
   }, [courses]);
 
   // ============================================
@@ -283,8 +275,8 @@ export default function CourseDiscoveryPage() {
           <div className="h-14 bg-white rounded-2xl shadow-sm border border-gray-200 animate-pulse"></div>
           
           {/* Course Cards Skeleton */}
-          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4 sm:gap-6">
-            {[1, 2, 3, 4, 5, 6, 7, 8].map((i) => (
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 sm:gap-6">
+            {[1, 2, 3].map((i) => (
               <div key={i} className="bg-white rounded-2xl overflow-hidden shadow-sm animate-pulse">
                 <div className="w-full pt-[56.25%] bg-gray-200"></div>
                 <div className="p-4 sm:p-5 space-y-3">
@@ -374,8 +366,8 @@ export default function CourseDiscoveryPage() {
                 Clear Search
               </button>
             </div>
-            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4 sm:gap-5">
-              {searchResults.slice(0, 8).map((course) => (
+            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 sm:gap-5">
+              {searchResults.slice(0, 6).map((course) => (
                 <CourseCard
                   key={course._id}
                   course={course}
@@ -400,7 +392,7 @@ export default function CourseDiscoveryPage() {
         )}
 
         {/* ============================================
-            RECOMMENDED COURSES
+            RECOMMENDED COURSES - Only 3 cards - Mobile responsive
             ============================================ */}
         {!isSearching && recommendedCourses.length > 0 && (
           <div className="mb-6 sm:mb-8">
@@ -410,25 +402,19 @@ export default function CourseDiscoveryPage() {
                 <p className="text-xs sm:text-sm text-gray-500">Handpicked courses based on popularity</p>
               </div>
             </div>
-            <div className="relative">
-              <div className="flex gap-3 sm:gap-4 md:gap-5 overflow-x-auto scroll-smooth snap-x snap-mandatory pb-4 hide-scrollbar">
-                {recommendedCourses.map((course) => (
-                  <div
-                    key={course._id}
-                    className="flex-shrink-0 w-[260px] sm:w-[280px] md:w-[300px] lg:w-[320px] snap-start"
-                  >
-                    <CourseCard
-                      course={course}
-                    />
-                  </div>
-                ))}
-              </div>
+            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 sm:gap-5">
+              {recommendedCourses.map((course) => (
+                <CourseCard
+                  key={course._id}
+                  course={course}
+                />
+              ))}
             </div>
           </div>
         )}
 
         {/* ============================================
-            CATEGORY SECTIONS
+            CATEGORY SECTIONS - Mobile responsive
             ============================================ */}
         {!isSearching &&
           categories.map((category) => {
@@ -449,7 +435,7 @@ export default function CourseDiscoveryPage() {
                   </div>
                 </div>
 
-                {/* Horizontal Scroll Section */}
+                {/* Horizontal Scroll Section - Mobile responsive */}
                 <div className="relative group">
                   {/* Left Navigation Button */}
                   <button
@@ -459,17 +445,17 @@ export default function CourseDiscoveryPage() {
                     <ChevronLeft className="h-4 w-4 sm:h-5 sm:w-5" />
                   </button>
 
-                  {/* Scroll Container */}
+                  {/* Scroll Container - Mobile first */}
                   <div
                     ref={(el) => {
                       categoryRefs.current[category] = el;
                     }}
-                    className="flex gap-3 sm:gap-4 md:gap-5 overflow-x-auto scroll-smooth snap-x snap-mandatory pb-4 hide-scrollbar"
+                    className="flex gap-3 sm:gap-4 md:gap-5 overflow-x-auto scroll-smooth snap-x snap-mandatory pb-4 hide-scrollbar px-0.5"
                   >
                     {categoryCourses.map((course) => (
                       <div
                         key={course._id}
-                        className="flex-shrink-0 w-[260px] sm:w-[280px] md:w-[300px] lg:w-[320px] snap-start"
+                        className="flex-shrink-0 w-[280px] xs:w-[300px] sm:w-[280px] md:w-[300px] lg:w-[320px] snap-start"
                       >
                         <CourseCard
                           course={course}

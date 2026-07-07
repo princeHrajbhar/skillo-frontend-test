@@ -157,7 +157,7 @@ export default function HeroSection() {
                 <div className="mt-6 sm:mt-10">
                   <button
                     onClick={() => setIsPopupOpen(true)}
-                    className="inline-flex items-center justify-center rounded-lg bg-gradient-to-r from-[#016ab7] to-[#6cb84d] px-6 sm:px-8 py-3 sm:py-4 text-sm sm:text-base font-semibold text-white shadow-lg transition-all hover:scale-105 hover:shadow-[#016ab7]/25"
+                    className="inline-flex items-center justify-center rounded-lg bg-[#016ab7] px-6 sm:px-8 py-3 sm:py-4 text-sm sm:text-base font-semibold text-white shadow-lg transition-all hover:bg-[#0158a0] hover:scale-105 hover:shadow-[#016ab7]/25"
                   >
                     Get Started Now
                   </button>
@@ -170,7 +170,7 @@ export default function HeroSection() {
         {/* Left Arrow */}
         <button
           onClick={prevSlide}
-          className="absolute left-2 sm:left-4 top-1/2 z-30 -translate-y-1/2 rounded-full bg-white/20 p-1.5 sm:p-2 text-white backdrop-blur-md transition hover:bg-gradient-to-r hover:from-[#016ab7] hover:to-[#6cb84d] hover:text-white"
+          className="absolute left-2 sm:left-4 top-1/2 z-30 -translate-y-1/2 rounded-full bg-white/20 p-1.5 sm:p-2 text-white backdrop-blur-md transition hover:bg-[#016ab7] hover:text-white"
         >
           <ChevronLeft size={16} className="sm:w-5 sm:h-5" />
         </button>
@@ -178,7 +178,7 @@ export default function HeroSection() {
         {/* Right Arrow */}
         <button
           onClick={nextSlide}
-          className="absolute right-2 sm:right-4 top-1/2 z-30 -translate-y-1/2 rounded-full bg-white/20 p-1.5 sm:p-2 text-white backdrop-blur-md transition hover:bg-gradient-to-r hover:from-[#016ab7] hover:to-[#6cb84d] hover:text-white"
+          className="absolute right-2 sm:right-4 top-1/2 z-30 -translate-y-1/2 rounded-full bg-white/20 p-1.5 sm:p-2 text-white backdrop-blur-md transition hover:bg-[#016ab7] hover:text-white"
         >
           <ChevronRight size={16} className="sm:w-5 sm:h-5" />
         </button>
@@ -191,7 +191,7 @@ export default function HeroSection() {
               onClick={() => setCurrent(index)}
               className={`h-1.5 sm:h-2 rounded-full transition-all ${
                 current === index
-                  ? 'w-4 sm:w-8 bg-gradient-to-r from-[#016ab7] to-[#6cb84d]'
+                  ? 'w-4 sm:w-8 bg-[#016ab7]'
                   : 'w-1.5 sm:w-2 bg-white/50'
               }`}
             />
@@ -293,7 +293,7 @@ export default function HeroSection() {
                 <button
                   type="submit"
                   disabled={isSubmitting}
-                  className="w-full py-3 bg-gradient-to-r from-[#016ab7] to-[#6cb84d] text-white font-semibold rounded-lg transition-all hover:scale-[1.02] hover:shadow-lg disabled:opacity-70 disabled:cursor-not-allowed text-sm sm:text-base"
+                  className="w-full py-3 bg-[#016ab7] text-white font-semibold rounded-lg transition-all hover:bg-[#0158a0] hover:scale-[1.02] hover:shadow-lg disabled:opacity-70 disabled:cursor-not-allowed text-sm sm:text-base"
                 >
                   {isSubmitting ? (
                     <span className="flex items-center justify-center gap-2">

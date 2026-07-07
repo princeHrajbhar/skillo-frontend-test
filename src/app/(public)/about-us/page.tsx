@@ -177,34 +177,34 @@ const AboutPage = () => {
 
   return (
     <div className="min-h-screen bg-white">
-      {/* Header - Purple and Black Gradient - BUG-019 FIXED */}
-      <div className="relative overflow-hidden bg-gradient-to-br from-purple-900 via-purple-800 to-black">
+      {/* Header - Blue Gradient - No Curve */}
+      <div className="relative overflow-hidden bg-gradient-to-br from-[#016ab7] via-[#0158a0] to-[#013b6b]">
         <div className="absolute inset-0">
-          <div className="absolute top-0 -left-4 w-96 h-96 bg-purple-500/20 rounded-full mix-blend-screen filter blur-3xl animate-blob"></div>
-          <div className="absolute top-0 -right-4 w-96 h-96 bg-purple-600/15 rounded-full mix-blend-screen filter blur-3xl animate-blob animation-delay-2000"></div>
-          <div className="absolute -bottom-8 left-20 w-96 h-96 bg-purple-400/10 rounded-full mix-blend-screen filter blur-3xl animate-blob animation-delay-4000"></div>
+          <div className="absolute top-0 -left-4 w-96 h-96 bg-[#016ab7]/20 rounded-full mix-blend-screen filter blur-3xl animate-blob"></div>
+          <div className="absolute top-0 -right-4 w-96 h-96 bg-[#0158a0]/15 rounded-full mix-blend-screen filter blur-3xl animate-blob animation-delay-2000"></div>
+          <div className="absolute -bottom-8 left-20 w-96 h-96 bg-[#016ab7]/10 rounded-full mix-blend-screen filter blur-3xl animate-blob animation-delay-4000"></div>
         </div>
 
         <div className="relative max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-20 md:py-32">
           <div className="grid grid-cols-1 lg:grid-cols-2 gap-12 items-center">
             <div>
-              <div className="inline-flex items-center gap-2 bg-white/5 backdrop-blur-sm px-4 py-2 rounded-full mb-6 border border-white/10">
-                <SparklesIcon className="h-5 w-5 text-purple-400" />
-                <span className="text-sm font-medium text-white/80">About Our Platform</span>
+              <div className="inline-flex items-center gap-2 bg-white/15 backdrop-blur-sm px-4 py-2 rounded-full mb-6 border border-white/20">
+                <SparklesIcon className="h-5 w-5 text-[#6cb84d]" />
+                <span className="text-sm font-medium text-white">About Our Platform</span>
               </div>
               <h1 className="text-4xl md:text-5xl lg:text-6xl font-bold text-white leading-tight mb-6">
                 We're Building the{' '}
-                <span className="bg-gradient-to-r from-purple-400 via-purple-300 to-white text-transparent bg-clip-text">
+                <span className="bg-gradient-to-r from-[#6cb84d] via-white to-[#6cb84d] text-transparent bg-clip-text">
                   Future of Education
                 </span>
               </h1>
-              <p className="text-lg text-white/60 leading-relaxed mb-8">
+              <p className="text-lg text-white/90 leading-relaxed mb-8">
                 A revolutionary platform that combines technology with expert-led learning to make education accessible, engaging, and effective for everyone.
               </p>
               <div className="flex flex-wrap gap-4">
                 <Link
                   href="/course"
-                  className="px-8 py-3.5 bg-gradient-to-r from-purple-500 to-purple-700 text-white font-semibold rounded-xl transition-all shadow-lg shadow-purple-500/30 hover:shadow-purple-500/50 hover:shadow-xl hover:scale-105 inline-flex items-center gap-2"
+                  className="px-8 py-3.5 bg-white text-[#016ab7] font-semibold rounded-xl transition-all shadow-lg shadow-black/20 hover:shadow-black/30 hover:shadow-xl hover:scale-105 inline-flex items-center gap-2"
                 >
                   Get Started
                   <ArrowRightIcon className="h-5 w-5" />
@@ -212,12 +212,6 @@ const AboutPage = () => {
               </div>
             </div>
           </div>
-        </div>
-
-        <div className="absolute bottom-[-1px] left-0 w-full overflow-hidden leading-none">
-          <svg viewBox="0 0 1440 80" xmlns="http://www.w3.org/2000/svg" className="block w-full h-auto" preserveAspectRatio="none">
-            <path d="M0 80L60 70C120 60 240 40 360 35C480 30 600 30 720 35C840 40 960 50 1080 50C1200 50 1320 40 1380 35L1440 30V80H0Z" fill="white"/>
-          </svg>
         </div>
       </div>
 
@@ -227,7 +221,7 @@ const AboutPage = () => {
           <div className="grid grid-cols-2 md:grid-cols-4 gap-6">
             {aboutData.stats.map((stat) => (
               <div key={stat.id} className="text-center">
-                <div className="flex items-center justify-center w-14 h-14 bg-gradient-to-br from-purple-600 to-purple-800 rounded-2xl mx-auto mb-3 shadow-lg shadow-purple-500/20">
+                <div className="flex items-center justify-center w-14 h-14 bg-gradient-to-br from-[#016ab7] to-[#0158a0] rounded-2xl mx-auto mb-3 shadow-lg shadow-[#016ab7]/20">
                   <stat.icon className="h-7 w-7 text-white" />
                 </div>
                 <div className="text-2xl md:text-3xl font-bold text-gray-900">{stat.value}</div>
@@ -239,10 +233,10 @@ const AboutPage = () => {
       </div>
 
       {/* Our Journey Timeline - BUG-015 FIXED: Horizontal layout */}
-      <div className="py-20 bg-gradient-to-b from-white to-purple-50">
+      <div className="py-20 bg-gradient-to-b from-white to-[#016ab7]/5">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="text-center mb-16">
-            <span className="text-sm font-semibold text-purple-600 uppercase tracking-wider">Our Journey</span>
+            <span className="text-sm font-semibold text-[#016ab7] uppercase tracking-wider">Our Journey</span>
             <h2 className="text-3xl md:text-4xl font-bold text-gray-900 mt-2">From Vision to Reality</h2>
             <p className="text-gray-600 mt-4 max-w-2xl mx-auto">Every milestone brings us closer to our goal of transforming education</p>
           </div>
@@ -252,18 +246,18 @@ const AboutPage = () => {
               {aboutData.journey.map((item, index) => (
                 <React.Fragment key={index}>
                   <div className="relative flex-shrink-0 w-72">
-                    <div className="bg-white rounded-2xl shadow-lg p-6 hover:shadow-xl transition-all hover:border-l-4 hover:border-purple-600">
-                      <div className="text-2xl font-bold text-purple-600 mb-2">{item.year}</div>
+                    <div className="bg-white rounded-2xl shadow-lg p-6 hover:shadow-xl transition-all hover:border-l-4 hover:border-[#016ab7]">
+                      <div className="text-2xl font-bold text-[#016ab7] mb-2">{item.year}</div>
                       <h3 className="text-lg font-semibold text-gray-900">{item.title}</h3>
                       <p className="text-gray-600 text-sm mt-2">{item.description}</p>
                     </div>
                   </div>
                   {index < aboutData.journey.length - 1 && (
                     <div className="flex-shrink-0 relative">
-                      <div className="w-8 h-8 bg-gradient-to-br from-purple-600 to-purple-800 rounded-full shadow-lg shadow-purple-500/20 flex items-center justify-center">
+                      <div className="w-8 h-8 bg-gradient-to-br from-[#016ab7] to-[#0158a0] rounded-full shadow-lg shadow-[#016ab7]/20 flex items-center justify-center">
                         <div className="w-3 h-3 bg-white rounded-full"></div>
                       </div>
-                      <div className="absolute left-1/2 top-1/2 w-8 h-0.5 bg-gradient-to-r from-purple-600 to-purple-800 transform -translate-y-1/2"></div>
+                      <div className="absolute left-1/2 top-1/2 w-8 h-0.5 bg-gradient-to-r from-[#016ab7] to-[#0158a0] transform -translate-y-1/2"></div>
                     </div>
                   )}
                 </React.Fragment>
@@ -273,12 +267,12 @@ const AboutPage = () => {
         </div>
       </div>
 
-      {/* Why Choose Us - Purple accent */}
+      {/* Why Choose Us - Blue accent */}
       <div className="py-20 bg-white">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="max-w-4xl mx-auto">
             <div className="text-center mb-12">
-              <span className="text-sm font-semibold text-purple-600 uppercase tracking-wider">Why Choose Us</span>
+              <span className="text-sm font-semibold text-[#016ab7] uppercase tracking-wider">Why Choose Us</span>
               <h2 className="text-3xl md:text-4xl font-bold text-gray-900 mt-2 mb-6">
                 Built for the Modern Learner
               </h2>
@@ -287,8 +281,8 @@ const AboutPage = () => {
             
             <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
               {aboutData.features.map((feature) => (
-                <div key={feature.id} className="flex items-start gap-4 bg-gray-50 rounded-2xl p-6 hover:shadow-lg hover:bg-gradient-to-br hover:from-purple-50 hover:to-purple-100 transition-all border border-gray-100">
-                  <div className="flex-shrink-0 w-12 h-12 bg-gradient-to-br from-purple-600 to-purple-800 rounded-xl flex items-center justify-center shadow-lg shadow-purple-500/20">
+                <div key={feature.id} className="flex items-start gap-4 bg-gray-50 rounded-2xl p-6 hover:shadow-lg hover:bg-gradient-to-br hover:from-[#016ab7]/5 hover:to-[#6cb84d]/5 transition-all border border-gray-100">
+                  <div className="flex-shrink-0 w-12 h-12 bg-gradient-to-br from-[#016ab7] to-[#0158a0] rounded-xl flex items-center justify-center shadow-lg shadow-[#016ab7]/20">
                     <feature.icon className="h-6 w-6 text-white" />
                   </div>
                   <div>
@@ -303,10 +297,10 @@ const AboutPage = () => {
       </div>
 
       {/* Team Section - BUG-017 FIXED: Real management team */}
-      <div className="py-20 bg-gradient-to-b from-purple-50 to-white">
+      <div className="py-20 bg-gradient-to-b from-[#016ab7]/5 to-white">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="text-center mb-16">
-            <span className="text-sm font-semibold text-purple-600 uppercase tracking-wider">Our Leadership</span>
+            <span className="text-sm font-semibold text-[#016ab7] uppercase tracking-wider">Our Leadership</span>
             <h2 className="text-3xl md:text-4xl font-bold text-gray-900 mt-2">Meet Our Management Team</h2>
             <p className="text-gray-600 mt-4 max-w-3xl mx-auto">
               The minds behind Shiksha Nation - leading with vision, passion, and purpose.
@@ -316,13 +310,13 @@ const AboutPage = () => {
           <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
             {aboutData.team.map((member) => (
               <div key={member.id} className="group relative bg-white rounded-2xl shadow-lg overflow-hidden hover:shadow-2xl transition-all hover:-translate-y-1">
-                <div className="h-2 bg-gradient-to-r from-purple-600 to-purple-800"></div>
+                <div className="h-2 bg-gradient-to-r from-[#016ab7] to-[#6cb84d]"></div>
                 <div className="p-6 text-center">
-                  <div className="w-24 h-24 bg-gradient-to-br from-purple-600 to-purple-800 rounded-full mx-auto mb-4 flex items-center justify-center shadow-lg shadow-purple-500/20 group-hover:scale-110 transition-transform">
+                  <div className="w-24 h-24 bg-gradient-to-br from-[#016ab7] to-[#0158a0] rounded-full mx-auto mb-4 flex items-center justify-center shadow-lg shadow-[#016ab7]/20 group-hover:scale-110 transition-transform">
                     <UserIcon className="h-12 w-12 text-white" />
                   </div>
                   <h3 className="text-lg font-semibold text-gray-900">{member.name}</h3>
-                  <p className="text-sm text-purple-600 font-medium">{member.role}</p>
+                  <p className="text-sm text-[#016ab7] font-medium">{member.role}</p>
                   <p className="text-sm text-gray-600 mt-2 line-clamp-4">{member.bio}</p>
                 </div>
               </div>
@@ -335,7 +329,7 @@ const AboutPage = () => {
       <div className="py-20 bg-white overflow-hidden">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="text-center mb-12">
-            <span className="text-sm font-semibold text-purple-600 uppercase tracking-wider">Testimonials</span>
+            <span className="text-sm font-semibold text-[#016ab7] uppercase tracking-wider">Testimonials</span>
             <h2 className="text-3xl md:text-4xl font-bold text-gray-900 mt-2">What Our Community Says</h2>
           </div>
         </div>
@@ -349,7 +343,7 @@ const AboutPage = () => {
             {[...aboutData.testimonials, ...aboutData.testimonials].map((testimonial, index) => (
               <div
                 key={`${testimonial.id}-${index}`}
-                className="w-[320px] flex-shrink-0 bg-gradient-to-br from-gray-50 to-white rounded-2xl p-6 shadow-lg border border-gray-100 hover:shadow-xl hover:border-purple-200 transition-all"
+                className="w-[320px] flex-shrink-0 bg-gradient-to-br from-gray-50 to-white rounded-2xl p-6 shadow-lg border border-gray-100 hover:shadow-xl hover:border-[#016ab7]/30 transition-all"
               >
                 <div className="flex gap-1 mb-3">
                   {[...Array(5)].map((_, i) => (
@@ -358,7 +352,7 @@ const AboutPage = () => {
                 </div>
                 <p className="text-gray-700 leading-relaxed text-sm mb-4">"{testimonial.quote}"</p>
                 <div className="flex items-center gap-3">
-                  <div className="w-10 h-10 bg-gradient-to-br from-purple-600 to-purple-800 rounded-full flex items-center justify-center flex-shrink-0">
+                  <div className="w-10 h-10 bg-gradient-to-br from-[#016ab7] to-[#0158a0] rounded-full flex items-center justify-center flex-shrink-0">
                     <UserIcon className="h-5 w-5 text-white" />
                   </div>
                   <div>
@@ -372,46 +366,46 @@ const AboutPage = () => {
         </div>
       </div>
 
-      {/* BUG-019 FIXED: CTA Section with Form and Purple/Black Theme */}
-      <div className="relative overflow-hidden py-20 bg-gradient-to-br from-purple-900 via-purple-800 to-black">
+      {/* CTA Section with Form - No Curve */}
+      <div className="relative overflow-hidden py-20 bg-gradient-to-br from-[#016ab7] via-[#0158a0] to-[#013b6b]">
         <div className="absolute inset-0">
-          <div className="absolute top-0 -left-4 w-96 h-96 bg-purple-500/20 rounded-full mix-blend-screen filter blur-3xl animate-blob"></div>
-          <div className="absolute bottom-0 -right-4 w-96 h-96 bg-purple-400/15 rounded-full mix-blend-screen filter blur-3xl animate-blob animation-delay-2000"></div>
+          <div className="absolute top-0 -left-4 w-96 h-96 bg-[#016ab7]/20 rounded-full mix-blend-screen filter blur-3xl animate-blob"></div>
+          <div className="absolute bottom-0 -right-4 w-96 h-96 bg-[#0158a0]/15 rounded-full mix-blend-screen filter blur-3xl animate-blob animation-delay-2000"></div>
         </div>
 
         <div className="relative max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="grid grid-cols-1 lg:grid-cols-2 gap-12 items-center">
             {/* Left Content */}
             <div>
-              <div className="inline-flex items-center gap-2 bg-white/5 backdrop-blur-sm px-4 py-2 rounded-full mb-6 border border-white/10">
-                <RocketLaunchIcon className="h-5 w-5 text-purple-400" />
-                <span className="text-sm font-medium text-white/80">Get In Touch</span>
+              <div className="inline-flex items-center gap-2 bg-white/15 backdrop-blur-sm px-4 py-2 rounded-full mb-6 border border-white/20">
+                <RocketLaunchIcon className="h-5 w-5 text-[#6cb84d]" />
+                <span className="text-sm font-medium text-white">Get In Touch</span>
               </div>
               
               <h2 className="text-3xl md:text-4xl lg:text-5xl font-bold text-white mb-4">
                 Ready to Transform Your{' '}
-                <span className="bg-gradient-to-r from-purple-400 via-purple-300 to-white text-transparent bg-clip-text">
+                <span className="bg-gradient-to-r from-[#6cb84d] via-white to-[#6cb84d] text-transparent bg-clip-text">
                   Learning Journey?
                 </span>
               </h2>
               
-              <p className="text-lg text-white/60 mb-8">
+              <p className="text-lg text-white/90 mb-8">
                 Join thousands of students who have already started their path to success. 
                 Fill out the form and our team will get back to you within 24 hours.
               </p>
 
               {/* Key Benefits */}
               <div className="space-y-3">
-                <div className="flex items-center gap-3 text-white/80">
-                  <CheckCircleIcon className="h-5 w-5 text-purple-400 flex-shrink-0" />
+                <div className="flex items-center gap-3 text-white/90">
+                  <CheckCircleIcon className="h-5 w-5 text-[#6cb84d] flex-shrink-0" />
                   <span>Free consultation with our experts</span>
                 </div>
-                <div className="flex items-center gap-3 text-white/80">
-                  <CheckCircleIcon className="h-5 w-5 text-purple-400 flex-shrink-0" />
+                <div className="flex items-center gap-3 text-white/90">
+                  <CheckCircleIcon className="h-5 w-5 text-[#6cb84d] flex-shrink-0" />
                   <span>Personalized learning path recommendations</span>
                 </div>
-                <div className="flex items-center gap-3 text-white/80">
-                  <CheckCircleIcon className="h-5 w-5 text-purple-400 flex-shrink-0" />
+                <div className="flex items-center gap-3 text-white/90">
+                  <CheckCircleIcon className="h-5 w-5 text-[#6cb84d] flex-shrink-0" />
                   <span>Access to exclusive resources and webinars</span>
                 </div>
               </div>
@@ -427,10 +421,10 @@ const AboutPage = () => {
                     <CheckCircleIcon className="h-8 w-8 text-green-400" />
                   </div>
                   <h4 className="text-xl font-semibold text-white mb-2">Thank You!</h4>
-                  <p className="text-white/60">We'll get back to you within 24 hours.</p>
+                  <p className="text-white/80">We'll get back to you within 24 hours.</p>
                   <button
                     onClick={() => setSubmitStatus(null)}
-                    className="mt-4 text-purple-400 hover:text-purple-300 transition-colors"
+                    className="mt-4 text-[#6cb84d] hover:text-[#5da83d] transition-colors"
                   >
                     Send another message
                   </button>
@@ -438,7 +432,7 @@ const AboutPage = () => {
               ) : (
                 <form onSubmit={handleSubmit} className="space-y-4">
                   <div>
-                    <label htmlFor="name" className="block text-sm font-medium text-white/80 mb-1">
+                    <label htmlFor="name" className="block text-sm font-medium text-white/90 mb-1">
                       Full Name *
                     </label>
                     <input
@@ -448,13 +442,13 @@ const AboutPage = () => {
                       value={formData.name}
                       onChange={handleInputChange}
                       required
-                      className="w-full px-4 py-3 bg-white/10 border border-white/20 rounded-lg text-white placeholder-white/40 focus:outline-none focus:ring-2 focus:ring-purple-400 focus:border-transparent transition-all"
+                      className="w-full px-4 py-3 bg-white/15 border border-white/20 rounded-lg text-white placeholder-white/60 focus:outline-none focus:ring-2 focus:ring-[#6cb84d] focus:border-transparent transition-all"
                       placeholder="Enter your full name"
                     />
                   </div>
 
                   <div>
-                    <label htmlFor="email" className="block text-sm font-medium text-white/80 mb-1">
+                    <label htmlFor="email" className="block text-sm font-medium text-white/90 mb-1">
                       Email Address *
                     </label>
                     <input
@@ -464,13 +458,13 @@ const AboutPage = () => {
                       value={formData.email}
                       onChange={handleInputChange}
                       required
-                      className="w-full px-4 py-3 bg-white/10 border border-white/20 rounded-lg text-white placeholder-white/40 focus:outline-none focus:ring-2 focus:ring-purple-400 focus:border-transparent transition-all"
+                      className="w-full px-4 py-3 bg-white/15 border border-white/20 rounded-lg text-white placeholder-white/60 focus:outline-none focus:ring-2 focus:ring-[#6cb84d] focus:border-transparent transition-all"
                       placeholder="Enter your email"
                     />
                   </div>
 
                   <div>
-                    <label htmlFor="phone" className="block text-sm font-medium text-white/80 mb-1">
+                    <label htmlFor="phone" className="block text-sm font-medium text-white/90 mb-1">
                       Phone Number
                     </label>
                     <input
@@ -479,13 +473,13 @@ const AboutPage = () => {
                       name="phone"
                       value={formData.phone}
                       onChange={handleInputChange}
-                      className="w-full px-4 py-3 bg-white/10 border border-white/20 rounded-lg text-white placeholder-white/40 focus:outline-none focus:ring-2 focus:ring-purple-400 focus:border-transparent transition-all"
+                      className="w-full px-4 py-3 bg-white/15 border border-white/20 rounded-lg text-white placeholder-white/60 focus:outline-none focus:ring-2 focus:ring-[#6cb84d] focus:border-transparent transition-all"
                       placeholder="Enter your phone number"
                     />
                   </div>
 
                   <div>
-                    <label htmlFor="message" className="block text-sm font-medium text-white/80 mb-1">
+                    <label htmlFor="message" className="block text-sm font-medium text-white/90 mb-1">
                       Message *
                     </label>
                     <textarea
@@ -495,7 +489,7 @@ const AboutPage = () => {
                       onChange={handleInputChange}
                       required
                       rows={3}
-                      className="w-full px-4 py-3 bg-white/10 border border-white/20 rounded-lg text-white placeholder-white/40 focus:outline-none focus:ring-2 focus:ring-purple-400 focus:border-transparent transition-all resize-none"
+                      className="w-full px-4 py-3 bg-white/15 border border-white/20 rounded-lg text-white placeholder-white/60 focus:outline-none focus:ring-2 focus:ring-[#6cb84d] focus:border-transparent transition-all resize-none"
                       placeholder="Tell us how we can help you..."
                     />
                   </div>
@@ -509,11 +503,11 @@ const AboutPage = () => {
                   <button
                     type="submit"
                     disabled={isSubmitting}
-                    className="w-full py-3.5 bg-gradient-to-r from-purple-500 to-purple-700 text-white font-semibold rounded-lg transition-all shadow-lg shadow-purple-500/30 hover:shadow-purple-500/50 hover:shadow-xl hover:scale-[1.02] disabled:opacity-70 disabled:cursor-not-allowed flex items-center justify-center gap-2"
+                    className="w-full py-3.5 bg-white text-[#016ab7] font-semibold rounded-lg transition-all shadow-lg shadow-black/20 hover:shadow-black/30 hover:shadow-xl hover:scale-[1.02] disabled:opacity-70 disabled:cursor-not-allowed flex items-center justify-center gap-2"
                   >
                     {isSubmitting ? (
                       <>
-                        <div className="w-5 h-5 border-2 border-white/30 border-t-white rounded-full animate-spin"></div>
+                        <div className="w-5 h-5 border-2 border-[#016ab7]/30 border-t-[#016ab7] rounded-full animate-spin"></div>
                         Sending...
                       </>
                     ) : (
@@ -524,20 +518,13 @@ const AboutPage = () => {
                     )}
                   </button>
 
-                  <p className="text-xs text-white/40 text-center mt-2">
+                  <p className="text-xs text-white/50 text-center mt-2">
                     We respect your privacy. Your information is safe with us.
                   </p>
                 </form>
               )}
             </div>
           </div>
-        </div>
-
-        {/* Bottom Wave */}
-        <div className="absolute bottom-0 left-0 w-full">
-          <svg viewBox="0 0 1440 80" fill="none" xmlns="http://www.w3.org/2000/svg" className="w-full">
-            <path d="M0 80L60 70C120 60 240 40 360 35C480 30 600 30 720 35C840 40 960 50 1080 50C1200 50 1320 40 1380 35L1440 30V80H1380C1320 80 1200 80 1080 80C960 80 840 80 720 80C600 80 480 80 360 80C240 80 120 80 60 80H0Z" fill="white"/>
-          </svg>
         </div>
       </div>
 

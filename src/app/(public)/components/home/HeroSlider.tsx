@@ -11,34 +11,75 @@ const banners = [
   "/home/4.png",
 ];
 
+// Duplicate first slide for seamless infinite loop
+const slides = [...banners, banners[0]];
+
 export default function HeroSlider() {
   const [currentSlide, setCurrentSlide] = useState(0);
+  const [enableTransition, setEnableTransition] = useState(true);
   const [touchStart, setTouchStart] = useState<number | null>(null);
   const [isAutoPlaying, setIsAutoPlaying] = useState(true);
 
-  const nextSlide = () => {
-    setCurrentSlide((prev) => (prev + 1) % banners.length);
-  };
-
-  const prevSlide = () => {
-    setCurrentSlide((prev) =>
-      prev === 0 ? banners.length - 1 : prev - 1
-    );
-  };
-
+  // Auto Slide
   useEffect(() => {
     if (!isAutoPlaying) return;
 
     const interval = setInterval(() => {
-      nextSlide();
-    }, 4000);
+      setCurrentSlide((prev) => prev + 1);
+    }, 3000);
 
     return () => clearInterval(interval);
   }, [isAutoPlaying]);
 
+  // Infinite Loop Reset
+  useEffect(() => {
+    if (currentSlide === banners.length) {
+      const timer = setTimeout(() => {
+        setEnableTransition(false);
+        setCurrentSlide(0);
+
+        requestAnimationFrame(() => {
+          requestAnimationFrame(() => {
+            setEnableTransition(true);
+          });
+        });
+      }, 700);
+
+      return () => clearTimeout(timer);
+    }
+  }, [currentSlide]);
+
   const pauseAutoPlay = () => {
     setIsAutoPlaying(false);
     setTimeout(() => setIsAutoPlaying(true), 5000);
+  };
+
+  const nextSlide = () => {
+    setCurrentSlide((prev) => prev + 1);
+    pauseAutoPlay();
+  };
+
+  const prevSlide = () => {
+    if (currentSlide === 0) {
+      setEnableTransition(false);
+      setCurrentSlide(banners.length);
+
+      requestAnimationFrame(() => {
+        requestAnimationFrame(() => {
+          setEnableTransition(true);
+          setCurrentSlide(banners.length - 1);
+        });
+      });
+    } else {
+      setCurrentSlide((prev) => prev - 1);
+    }
+
+    pauseAutoPlay();
+  };
+
+  const goToSlide = (index: number) => {
+    setCurrentSlide(index);
+    pauseAutoPlay();
   };
 
   const handleTouchStart = (e: React.TouchEvent) => {
@@ -51,101 +92,88 @@ export default function HeroSlider() {
     const touchEnd = e.changedTouches[0].clientX;
     const diff = touchStart - touchEnd;
 
-    if (diff > 50) {
-      nextSlide();
-      pauseAutoPlay();
-    } else if (diff < -50) {
-      prevSlide();
-      pauseAutoPlay();
-    }
+    if (diff > 50) nextSlide();
+    if (diff < -50) prevSlide();
 
     setTouchStart(null);
   };
 
   return (
     <section
-      className="relative w-full overflow-hidden bg-white"
+      className="relative w-full overflow-hidden bg-white m-0 p-0"
       onMouseEnter={() => setIsAutoPlaying(false)}
       onMouseLeave={() => setIsAutoPlaying(true)}
     >
       <div
-        className="relative w-full"
+        className="relative w-full m-0 p-0"
         onTouchStart={handleTouchStart}
         onTouchEnd={handleTouchEnd}
       >
         {/* Slider */}
         <div
-          className="flex transition-transform duration-700 ease-in-out"
+          className={`flex ${
+            enableTransition
+              ? "transition-transform duration-700 ease-in-out"
+              : ""
+          } m-0 p-0`}
           style={{
             transform: `translateX(-${currentSlide * 100}%)`,
           }}
         >
-          {banners.map((banner, index) => (
+          {slides.map((banner, index) => (
             <div
               key={index}
-              className="relative min-w-full w-full
-                         h-[180px]
-                         sm:h-[250px]
-                         md:h-[340px]
-                         lg:h-[430px]
-                         xl:h-[520px]
-                         overflow-hidden bg-white"
+              className="min-w-full w-full flex justify-center items-center bg-white m-0 p-0"
             >
-              <Image
-                src={banner}
-                alt={`Banner ${index + 1}`}
-                fill
-                priority={index === 0}
-                sizes="100vw"
-                className="object-contain object-center"
-              />
+              <div className="relative w-full m-0 p-0">
+                <Image
+                  src={banner}
+                  alt={`Banner ${index + 1}`}
+                  width={1920}
+                  height={600}
+                  priority={index === 0}
+                  className="block w-full h-auto m-0 p-0"
+                  sizes="100vw"
+                />
+              </div>
             </div>
           ))}
         </div>
 
         {/* Previous */}
         <button
-          onClick={() => {
-            prevSlide();
-            pauseAutoPlay();
-          }}
-          className="absolute left-3 top-1/2 -translate-y-1/2 z-20 rounded-full bg-white/90 p-3 shadow-lg transition hover:scale-110"
+          onClick={prevSlide}
+          className="absolute left-3 top-1/2 -translate-y-1/2 z-20 rounded-full bg-white/90 p-3 shadow-lg backdrop-blur transition hover:scale-110 border border-gray-200"
         >
-          <ChevronLeft size={24} />
+          <ChevronLeft className="w-6 h-6 text-gray-700" />
         </button>
 
         {/* Next */}
         <button
-          onClick={() => {
-            nextSlide();
-            pauseAutoPlay();
-          }}
-          className="absolute right-3 top-1/2 -translate-y-1/2 z-20 rounded-full bg-white/90 p-3 shadow-lg transition hover:scale-110"
+          onClick={nextSlide}
+          className="absolute right-3 top-1/2 -translate-y-1/2 z-20 rounded-full bg-white/90 p-3 shadow-lg backdrop-blur transition hover:scale-110 border border-gray-200"
         >
-          <ChevronRight size={24} />
+          <ChevronRight className="w-6 h-6 text-gray-700" />
         </button>
 
         {/* Dots */}
-        <div className="absolute bottom-4 left-1/2 z-20 flex -translate-x-1/2 gap-2">
+        <div className="absolute bottom-5 left-1/2 -translate-x-1/2 flex gap-2 z-20">
           {banners.map((_, index) => (
             <button
               key={index}
-              onClick={() => {
-                setCurrentSlide(index);
-                pauseAutoPlay();
-              }}
-              className={`rounded-full transition-all ${
-                currentSlide === index
+              onClick={() => goToSlide(index)}
+              className={`transition-all duration-300 rounded-full ${
+                currentSlide % banners.length === index
                   ? "w-10 h-2 bg-[#016ab7]"
-                  : "w-2 h-2 bg-[#016ab7]/40"
+                  : "w-2 h-2 bg-[#016ab7]/40 hover:bg-[#016ab7]/60"
               }`}
             />
           ))}
         </div>
 
         {/* Counter */}
-        <div className="absolute bottom-4 right-4 rounded-full bg-black/50 px-3 py-1 text-xs text-white backdrop-blur">
-          {currentSlide + 1} / {banners.length}
+        <div className="absolute bottom-5 right-5 rounded-full bg-black/50 px-3 py-1 text-xs text-white backdrop-blur">
+          {(currentSlide % banners.length) + 1} / {banners.length}
         </div>
       </div>
     </section>
