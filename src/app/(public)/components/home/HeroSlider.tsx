@@ -100,12 +100,12 @@ export default function HeroSlider() {
 
   return (
     <section
-      className="relative w-full overflow-hidden bg-white m-0 p-0"
+      className="relative w-full overflow-hidden bg-white m-0 p-0 leading-[0]"
       onMouseEnter={() => setIsAutoPlaying(false)}
       onMouseLeave={() => setIsAutoPlaying(true)}
     >
       <div
-        className="relative w-full m-0 p-0"
+        className="relative w-full m-0 p-0 leading-[0]"
         onTouchStart={handleTouchStart}
         onTouchEnd={handleTouchEnd}
       >
@@ -115,7 +115,7 @@ export default function HeroSlider() {
             enableTransition
               ? "transition-transform duration-700 ease-in-out"
               : ""
-          } m-0 p-0`}
+          } m-0 p-0 leading-[0]`}
           style={{
             transform: `translateX(-${currentSlide * 100}%)`,
           }}
@@ -123,17 +123,18 @@ export default function HeroSlider() {
           {slides.map((banner, index) => (
             <div
               key={index}
-              className="min-w-full w-full flex justify-center items-center bg-white m-0 p-0"
+              className="min-w-full w-full flex justify-center items-center bg-white m-0 p-0 leading-[0]"
             >
-              <div className="relative w-full m-0 p-0">
+              <div className="relative w-full m-0 p-0 leading-[0]">
                 <Image
                   src={banner}
                   alt={`Banner ${index + 1}`}
                   width={1920}
                   height={600}
                   priority={index === 0}
-                  className="block w-full h-auto m-0 p-0"
+                  className="block w-full h-auto m-0 p-0 leading-[0]"
                   sizes="100vw"
+                  style={{ display: 'block' }}
                 />
               </div>
             </div>
