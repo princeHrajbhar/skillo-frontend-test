@@ -1,18 +1,42 @@
 // src/app/(auth)/login/page.tsx
 'use client';
 
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
 import { Eye, EyeOff, Lock, AlertCircle, Loader2 } from 'lucide-react';
 import { useLoginMutation } from '../../../features/auth/api/authApi';
+import { useAppDispatch } from '../../../redux/hooks';
+import { setUser } from '../../../features/auth/slices/authSlice';
 
 export default function LoginPage() {
   const router = useRouter();
+  const dispatch = useAppDispatch();
   const [login, { isLoading }] = useLoginMutation();
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [showPassword, setShowPassword] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const [isMounted, setIsMounted] = useState(false);
+
+  // Set mounted flag
+  useEffect(() => {
+    setIsMounted(true);
+  }, []);
+
+  // Check if already authenticated - only after mounting
+  useEffect(() => {
+    if (!isMounted) return;
+    
+    const token = localStorage.getItem('accessToken');
+    const user = localStorage.getItem('user');
+    
+    console.log('🔍 Login page: Checking existing auth:', { token: !!token, user: !!user });
+    
+    if (token && user) {
+      console.log('✅ Already authenticated, redirecting to dashboard...');
+      router.push('/dashboard');
+    }
+  }, [router, isMounted]);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -24,15 +48,35 @@ export default function LoginPage() {
     }
 
     try {
+      console.log('🔄 Attempting login with:', { email });
       const result = await login({ email, password }).unwrap();
+      console.log('✅ Login response:', result);
 
-      if (result.success) {
+      if (result.success && result.data?.accessToken) {
+        // Store token
+        localStorage.setItem('accessToken', result.data.accessToken);
+        document.cookie = `accessToken=${result.data.accessToken}; path=/; max-age=86400; SameSite=Lax`;
+        
+        if (result.data.user) {
+          localStorage.setItem('user', JSON.stringify(result.data.user));
+          dispatch(setUser(result.data.user));
+        }
+        
+        console.log('✅ Token and user data stored, redirecting to dashboard...');
         router.push('/dashboard');
       } else {
         setError(result.message || 'Login failed. Please try again.');
       }
     } catch (err: any) {
-      setError(err?.data?.message || err?.message || 'Login failed. Please try again.');
+      console.error('❌ Login error:', err);
+      
+      if (err?.data?.message) {
+        setError(err.data.message);
+      } else if (err?.message) {
+        setError(err.message);
+      } else {
+        setError('Login failed. Please check your credentials and try again.');
+      }
     }
   };
 

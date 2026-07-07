@@ -60,7 +60,7 @@ export const authApi = baseApi.injectEndpoints({
       query: () => ({
         url: '/auth/refresh',
         method: 'POST',
-        credentials: 'include',
+        credentials: 'include', // ✅ Important: Send cookies
       }),
       transformResponse: (response: any) => {
         if (response?.data?.accessToken && typeof window !== 'undefined') {
@@ -124,18 +124,6 @@ export const authApi = baseApi.injectEndpoints({
         credentials: 'include',
       }),
       invalidatesTags: ['User', 'Session'],
-      onQueryStarted: async (_, { queryFulfilled }) => {
-        try {
-          await queryFulfilled;
-          if (typeof window !== 'undefined') {
-            localStorage.removeItem('accessToken');
-            localStorage.removeItem('user');
-            document.cookie = 'accessToken=; path=/; expires=Thu, 01 Jan 1970 00:00:01 GMT;';
-          }
-        } catch (error) {
-          console.error('❌ Logout failed:', error);
-        }
-      },
     }),
 
     logoutAll: builder.mutation<AuthResponse, void>({
@@ -145,18 +133,6 @@ export const authApi = baseApi.injectEndpoints({
         credentials: 'include',
       }),
       invalidatesTags: ['User', 'Session'],
-      onQueryStarted: async (_, { queryFulfilled }) => {
-        try {
-          await queryFulfilled;
-          if (typeof window !== 'undefined') {
-            localStorage.removeItem('accessToken');
-            localStorage.removeItem('user');
-            document.cookie = 'accessToken=; path=/; expires=Thu, 01 Jan 1970 00:00:01 GMT;';
-          }
-        } catch (error) {
-          console.error('❌ Logout all failed:', error);
-        }
-      },
     }),
   }),
 });

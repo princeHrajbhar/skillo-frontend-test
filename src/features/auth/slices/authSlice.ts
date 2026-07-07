@@ -1,7 +1,7 @@
 // src/features/auth/slices/authSlice.ts
 import { createSlice, PayloadAction } from '@reduxjs/toolkit';
-import { UserResponse } from '../api/authApi';
-import { authApi } from '../api/authApi';
+import { UserResponse } from '../api/authApi'; // ✅ Correct path
+import { authApi } from '../api/authApi'; // ✅ Correct path
 
 interface AuthState {
   user: UserResponse | null;
@@ -28,10 +28,8 @@ const authSlice = createSlice({
     setUser: (state, action: PayloadAction<UserResponse | null>) => {
       state.user = action.payload;
       state.isAuthenticated = !!action.payload;
-      state.initialized = true;
       if (action.payload) {
         state.error = null;
-        // Store user in localStorage
         if (typeof window !== 'undefined') {
           localStorage.setItem('user', JSON.stringify(action.payload));
         }
@@ -62,34 +60,25 @@ const authSlice = createSlice({
         document.cookie = 'accessToken=; path=/; expires=Thu, 01 Jan 1970 00:00:01 GMT;';
       }
     },
-    // For hydration
     hydrateUser: (state) => {
       if (typeof window !== 'undefined') {
         const storedUser = localStorage.getItem('user');
         const storedToken = localStorage.getItem('accessToken');
         
-        // ✅ Check for both user AND token
         if (storedUser && storedToken) {
           try {
             const user = JSON.parse(storedUser);
             state.user = user;
             state.isAuthenticated = true;
-            state.initialized = true;
           } catch (error) {
             console.error('Failed to parse stored user:', error);
-            state.initialized = true;
           }
-        } else {
-          state.initialized = true;
         }
-      } else {
-        state.initialized = true;
       }
     },
   },
   extraReducers: (builder) => {
     builder
-      // Login
       .addMatcher(
         authApi.endpoints.login.matchFulfilled,
         (state, action) => {
@@ -113,7 +102,6 @@ const authSlice = createSlice({
           state.error = action.error?.data?.message || 'Login failed';
         }
       )
-      // Logout
       .addMatcher(
         authApi.endpoints.logout.matchFulfilled,
         (state) => {
@@ -129,7 +117,6 @@ const authSlice = createSlice({
           }
         }
       )
-      // Get Me
       .addMatcher(
         authApi.endpoints.getMe.matchFulfilled,
         (state, action: PayloadAction<UserResponse>) => {
@@ -147,22 +134,18 @@ const authSlice = createSlice({
       .addMatcher(
         authApi.endpoints.getMe.matchRejected,
         (state, action: any) => {
-          // Only set loading false if it's not a 401
           if (action.error?.status !== 401) {
             state.isLoading = false;
           }
           state.isRefreshing = false;
-          state.initialized = true;
           state.error = action.error?.data?.message || 'Failed to fetch user';
         }
       )
-      // Refresh Token
       .addMatcher(
         authApi.endpoints.refreshToken.matchFulfilled,
         (state, action) => {
           state.isRefreshing = false;
           state.error = null;
-          // Store new token if returned
           if (action.payload?.data?.accessToken && typeof window !== 'undefined') {
             localStorage.setItem('accessToken', action.payload.data.accessToken);
             document.cookie = `accessToken=${action.payload.data.accessToken}; path=/; max-age=86400; SameSite=Lax`;

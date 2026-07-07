@@ -59,25 +59,27 @@ function FAQItem({
         aria-expanded={isOpen}
         aria-label={faq.question}
       >
-        <h3 className="text-sm font-semibold leading-6 text-slate-900 sm:text-base flex-1">
+        <h3 className="flex-1 text-sm font-semibold leading-6 text-slate-900 sm:text-base">
           {faq.question}
         </h3>
 
+        {/* FIX: Simplified dropdown button - removed gradient, made it simple */}
         <div
           className={`flex h-8 w-8 shrink-0 items-center justify-center rounded-full transition-all duration-300 ${
             isOpen 
-              ? "bg-gradient-to-r from-[#016ab7] to-[#6cb84d] rotate-180" 
-              : "border border-slate-200 bg-white hover:border-[#016ab7]"
+              ? "bg-[#016ab7] rotate-180" 
+              : "border border-slate-200 bg-white hover:border-[#016ab7] hover:bg-slate-50"
           }`}
         >
           <ChevronDown
             className={`h-4 w-4 transition-colors duration-300 ${
-              isOpen ? "text-white" : "text-slate-500 group-hover:text-[#016ab7]"
+              isOpen ? "text-white" : "text-slate-500"
             }`}
           />
         </div>
       </button>
 
+      {/* FIX: Proper alignment for answer content */}
       <div
         className={`grid transition-all duration-300 ease-in-out ${
           isOpen ? "grid-rows-[1fr] opacity-100" : "grid-rows-[0fr] opacity-0"
@@ -85,7 +87,9 @@ function FAQItem({
       >
         <div className="overflow-hidden">
           <div className="border-t border-slate-100 px-5 py-5 sm:px-7">
-            <p className="text-sm leading-7 text-slate-600">{faq.answer}</p>
+            <p className="text-sm leading-7 text-slate-600 sm:text-base">
+              {faq.answer}
+            </p>
           </div>
         </div>
       </div>
@@ -99,8 +103,9 @@ export default function FAQSection() {
   return (
     <section className="bg-white py-16 sm:py-20">
       <div className="mx-auto max-w-3xl px-4 sm:px-6 lg:px-8">
+        {/* FIX: Proper alignment for header section */}
         <div className="text-center">
-          <span className="inline-block rounded-full border border-brand-end px-4 py-1.5 text-xs font-bold uppercase tracking-widest text-brand-end">
+          <span className="inline-block rounded-full border border-[#016ab7] px-4 py-1.5 text-xs font-bold uppercase tracking-widest text-[#016ab7]">
             Frequently Asked Questions
           </span>
 
@@ -114,6 +119,7 @@ export default function FAQSection() {
           </p>
         </div>
 
+        {/* FIX: Proper spacing and alignment for FAQ items */}
         <div className="mt-10 space-y-3">
           {faqs.map((faq, index) => (
             <FAQItem

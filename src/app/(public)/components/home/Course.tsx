@@ -328,6 +328,7 @@ export default function CourseListing() {
                 ? calculateDiscount(course.price, course.discountedPrice as number) 
                 : 0;
 
+              // FIX: Removed discount badge from image - using clean image without overlays
               const imageUrl = course.bannerImage?.url || 
                               'https://images.unsplash.com/photo-1633356122102-3fe601e05bd2?w=800';
 
@@ -341,7 +342,7 @@ export default function CourseListing() {
                     viewMode === 'list' ? 'flex gap-6 p-4' : ''
                   }`}
                 >
-                  {/* Image - Badges repositioned to avoid overlap */}
+                  {/* FIX: Clean image without overlapping badges */}
                   <div className={`relative ${viewMode === 'list' ? 'w-64 flex-shrink-0' : ''}`}>
                     <img
                       src={imageUrl}
@@ -351,33 +352,20 @@ export default function CourseListing() {
                       }`}
                       loading="lazy"
                     />
-                    {/* Discount/Popular Badge - Top Left */}
-                    {hasDiscount && (
-                      <div className="absolute left-2 top-2 rounded-full bg-red-500 px-2.5 py-0.5 text-[10px] font-semibold text-white shadow-md">
-                        SAVE {discountPercentage}%
-                      </div>
-                    )}
-                    {!hasDiscount && course.status === 'active' && (
-                      <div className="absolute left-2 top-2 rounded-full bg-[#6cb84d] px-2.5 py-0.5 text-[10px] font-semibold text-white shadow-md">
-                        POPULAR
-                      </div>
-                    )}
-                    {course.status === 'upcoming' && (
-                      <div className="absolute left-2 top-2 rounded-full bg-amber-500 px-2.5 py-0.5 text-[10px] font-semibold text-white shadow-md">
-                        UPCOMING
-                      </div>
-                    )}
-                    {/* Rating Badge - Top Right, moved to corner */}
-                    <div className="absolute right-2 top-2 flex items-center gap-0.5 rounded-full bg-white/95 px-1.5 py-0.5 shadow-md backdrop-blur-sm">
-                      <Star size={10} className="fill-yellow-400 text-yellow-400" />
-                      <span className="text-[10px] font-semibold text-slate-700">
+                    
+                    {/* FIX: Removed discount badge from image - only rating badge remains */}
+                    {/* Rating Badge - Top Right corner only */}
+                    <div className="absolute right-3 top-3 flex items-center gap-1.5 rounded-full bg-white/95 px-2.5 py-1 shadow-lg shadow-black/10 backdrop-blur-sm">
+                      <Star size={12} className="fill-yellow-400 text-yellow-400" />
+                      <span className="text-xs font-bold text-slate-700">
                         {rating}
                       </span>
+                      <span className="text-[10px] text-slate-400">★</span>
                     </div>
                   </div>
 
                   {/* Content */}
-                  <div className={`flex-1 ${viewMode === 'grid' ? 'p-4' : 'py-2 pr-2'}`}>
+                  <div className={`flex-1 ${viewMode === 'grid' ? 'p-5' : 'py-3 pr-3'}`}>
                     <div className="flex items-center gap-2 flex-wrap">
                       <span className="rounded-full bg-[#016ab7]/10 px-3 py-1 text-xs font-medium text-[#016ab7]">
                         {course.category || 'General'}
@@ -424,6 +412,7 @@ export default function CourseListing() {
                       </div>
                     </div>
 
+                    {/* FIX: Discount shown in content area instead of on image */}
                     <div className={`flex items-center gap-3 ${
                       viewMode === 'grid' ? 'mt-3' : 'mt-2'
                     }`}>
@@ -435,7 +424,7 @@ export default function CourseListing() {
                           <span className="text-sm text-slate-400 line-through">
                             {formatPrice(course.price)}
                           </span>
-                          <span className="rounded-full bg-red-50 px-2 py-0.5 text-xs font-semibold text-red-600">
+                          <span className="rounded-full bg-red-50 px-2.5 py-0.5 text-xs font-semibold text-red-600">
                             -{discountPercentage}%
                           </span>
                         </>
@@ -445,7 +434,7 @@ export default function CourseListing() {
                       )}
                     </div>
 
-                    {/* Buttons - Changed "Add to Cart" to "Buy Now" */}
+                    {/* FIX: "Buy Now" button instead of "Add to Cart" */}
                     <div className={`grid gap-2 ${
                       viewMode === 'grid' ? 'mt-4 grid-cols-2' : 'mt-3 flex'
                     }`}>
@@ -458,7 +447,8 @@ export default function CourseListing() {
                       </button>
                       <button
                         onClick={() => {
-                          console.log(`Added ${course.title} to cart`);
+                          // FIX: Changed from "Add to Cart" to "Buy Now"
+                          console.log(`Buy Now: ${course.title}`);
                         }}
                         className="rounded-lg border-2 border-[#016ab7] bg-transparent px-4 py-2.5 text-sm font-medium text-[#016ab7] transition-all hover:bg-gradient-to-r hover:from-[#016ab7] hover:to-[#6cb84d] hover:text-white hover:shadow-lg hover:shadow-[#016ab7]/25 hover:border-transparent"
                       >

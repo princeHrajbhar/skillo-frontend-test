@@ -1,4 +1,4 @@
-// admin-dashboard\src\app\(protected)\dashboard\page.tsx
+// src/app/(protected)/dashboard/page.tsx
 'use client';
 
 import { useState, useEffect } from 'react';
@@ -27,29 +27,81 @@ import {
 export default function DashboardPage() {
   const router = useRouter();
   const { user, isAuthenticated, isLoading, initialized } = useAuth();
-  const { data: sessions = [], isLoading: sessionsLoading, error: sessionsError } = useGetSessionsQuery(undefined, {
-    refetchOnFocus: true,
-    refetchOnReconnect: true,
-    skip: !isAuthenticated || isLoading || !initialized, // Skip if not authenticated or loading
+  const [sessionsLoaded, setSessionsLoaded] = useState(false);
+  const [isRedirecting, setIsRedirecting] = useState(false);
+  
+  console.log('🔍 Dashboard: Auth state:', { 
+    isAuthenticated, 
+    isLoading, 
+    initialized, 
+    user: !!user,
+    isRedirecting 
   });
+
+  // Only fetch sessions when authenticated and initialized
+  const { 
+    data: sessions = [], 
+    isLoading: sessionsLoading, 
+    error: sessionsError,
+    refetch: refetchSessions
+  } = useGetSessionsQuery(undefined, {
+    skip: !isAuthenticated || isLoading || !initialized || isRedirecting,
+    refetchOnFocus: false,
+    refetchOnReconnect: false,
+  });
+
+  console.log('🔍 Dashboard: Sessions state:', { 
+    sessionsLoading, 
+    sessionsCount: sessions?.length, 
+    hasError: !!sessionsError,
+    skip: !isAuthenticated || isLoading || !initialized || isRedirecting
+  });
+
   const [logoutAll, { isLoading: logoutAllLoading }] = useLogoutAllMutation();
   const [showLogoutAllConfirm, setShowLogoutAllConfirm] = useState(false);
 
-  // Redirect if not authenticated
+  // Redirect if not authenticated - with proper checks
   useEffect(() => {
-    if (initialized && !isLoading && !isAuthenticated) {
-      console.log('🔒 Not authenticated, redirecting to login...');
-      router.push('/login');
+    console.log('🔍 Dashboard: Redirect check:', { 
+      initialized, 
+      isLoading, 
+      isAuthenticated,
+      isRedirecting 
+    });
+    
+    // Only redirect after initialization is complete and not loading
+    if (initialized && !isLoading && !isRedirecting) {
+      if (!isAuthenticated) {
+        console.log('🔒 Not authenticated, redirecting to login...');
+        setIsRedirecting(true);
+        router.replace('/login');
+      } else {
+        console.log('✅ Authenticated, staying on dashboard');
+      }
     }
-  }, [isAuthenticated, isLoading, initialized, router]);
+  }, [isAuthenticated, isLoading, initialized, router, isRedirecting]);
 
-  // Log sessions error if any
+  // Log sessions error but don't redirect
   useEffect(() => {
     if (sessionsError) {
       console.error('❌ Sessions error:', sessionsError);
+      // Don't redirect - useAuth handles it
     }
-  }, [sessionsError]);
+    
+    if (!sessionsLoading && sessions !== undefined) {
+      setSessionsLoaded(true);
+    }
+  }, [sessionsError, sessionsLoading, sessions]);
 
+  // Refetch sessions when authenticated
+  useEffect(() => {
+    if (isAuthenticated && initialized && !sessionsLoaded && !isRedirecting) {
+      console.log('🔄 Fetching sessions...');
+      refetchSessions();
+    }
+  }, [isAuthenticated, initialized, refetchSessions, sessionsLoaded, isRedirecting]);
+
+  // Stats and other data
   const stats = [
     { 
       label: 'Total Users', 
@@ -96,6 +148,7 @@ export default function DashboardPage() {
     try {
       await logoutAll().unwrap();
       setShowLogoutAllConfirm(false);
+      setIsRedirecting(true);
       router.push('/login');
     } catch (error) {
       console.error('Logout all failed:', error);
@@ -110,8 +163,9 @@ export default function DashboardPage() {
     return 'User';
   };
 
-  // Loading state
-  if (isLoading || !initialized) {
+  // Loading state - show only while initializing
+  if (!initialized || isLoading || isRedirecting) {
+    console.log('🔍 Dashboard: Showing loading state');
     return (
       <div className="min-h-[60vh] flex items-center justify-center">
         <div className="text-center">
@@ -125,9 +179,13 @@ export default function DashboardPage() {
 
   // If not authenticated, don't render (will redirect)
   if (!isAuthenticated) {
+    console.log('🔍 Dashboard: Not authenticated, returning null');
     return null;
   }
 
+  console.log('🔍 Dashboard: Rendering dashboard content');
+  
+  // Rest of your dashboard JSX...
   return (
     <div className="space-y-4 sm:space-y-6 px-3 sm:px-4 md:px-0 pb-8">
       {/* Page Header */}
@@ -138,7 +196,7 @@ export default function DashboardPage() {
         </p>
       </div>
 
-      {/* User Info Cards - Using Redux Data */}
+      {/* User Info Cards */}
       <div className="grid grid-cols-2 lg:grid-cols-4 gap-3 sm:gap-4">
         <div className="bg-white rounded-xl border border-gray-200 p-3 sm:p-4 md:p-6 hover:shadow-md transition-shadow duration-200">
           <div className="flex items-center gap-2 sm:gap-3">
@@ -211,48 +269,7 @@ export default function DashboardPage() {
         </div>
       </div>
 
-      {/* User Details Card */}
-      <div className="bg-white rounded-xl border border-gray-200 p-4 sm:p-6 hover:shadow-md transition-shadow duration-200">
-        <div className="flex items-center justify-between mb-3 sm:mb-4">
-          <h3 className="text-base sm:text-lg font-semibold text-gray-900">Account Details</h3>
-          <span className={`text-xs px-2 py-1 rounded-full font-medium ${
-            user?.isVerified ? 'bg-green-50 text-green-600' : 'bg-yellow-50 text-yellow-600'
-          }`}>
-            {user?.isVerified ? 'Verified' : 'Unverified'}
-          </span>
-        </div>
-        <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 sm:gap-4">
-          <div className="space-y-2">
-            <div className="flex flex-col sm:flex-row sm:items-center gap-1 sm:gap-2">
-              <span className="text-xs sm:text-sm text-gray-500 sm:w-24">User ID:</span>
-              <span className="text-xs sm:text-sm font-mono font-medium text-gray-900 break-all">
-                {user?.userId || 'N/A'}
-              </span>
-            </div>
-            <div className="flex flex-col sm:flex-row sm:items-center gap-1 sm:gap-2">
-              <span className="text-xs sm:text-sm text-gray-500 sm:w-24">Email:</span>
-              <span className="text-xs sm:text-sm font-medium text-gray-900 break-all">
-                {user?.email || 'N/A'}
-              </span>
-            </div>
-          </div>
-          <div className="space-y-2">
-            <div className="flex flex-col sm:flex-row sm:items-center gap-1 sm:gap-2">
-              <span className="text-xs sm:text-sm text-gray-500 sm:w-24">Role:</span>
-              <span className="text-xs sm:text-sm font-medium text-gray-900 capitalize">
-                {user?.role || 'User'}
-              </span>
-            </div>
-            <div className="flex flex-col sm:flex-row sm:items-center gap-1 sm:gap-2">
-              <span className="text-xs sm:text-sm text-gray-500 sm:w-24">Verified:</span>
-              <span className="text-xs sm:text-sm font-medium text-gray-900">
-                {user?.isVerified ? 'Yes' : 'No'}
-              </span>
-            </div>
-          </div>
-        </div>
-      </div>
-
+      {/* Rest of your dashboard content... */}
       {/* Stats Grid */}
       <div className="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-4 gap-3 sm:gap-4">
         {stats.map((stat) => {
