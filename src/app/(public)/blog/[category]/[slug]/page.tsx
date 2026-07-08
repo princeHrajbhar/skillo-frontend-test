@@ -16,9 +16,96 @@ import {
   ClockIcon,
   AcademicCapIcon,
   PlayIcon,
+  PlusIcon,
+  MinusIcon,
 } from '@heroicons/react/24/outline';
 import { format } from 'date-fns';
 import DOMPurify from 'dompurify';
+
+// ============================================
+// FAQ COMPONENT - Dynamic
+// ============================================
+
+interface FAQItem {
+  question: string;
+  answer: string;
+}
+
+interface FAQSectionProps {
+  faqs: FAQItem[];
+  title?: string;
+  subtitle?: string;
+}
+
+const FAQSection: React.FC<FAQSectionProps> = ({ 
+  faqs, 
+  title = "Frequently Asked Questions",
+  subtitle = "Find answers to common questions about this topic"
+}) => {
+  const [openIndex, setOpenIndex] = useState<number | null>(null);
+
+  const toggleFAQ = (index: number) => {
+    setOpenIndex(openIndex === index ? null : index);
+  };
+
+  if (!faqs || faqs.length === 0) return null;
+
+  return (
+    <div className="mt-8 sm:mt-10 md:mt-12 border-t border-gray-200 pt-6 sm:pt-8 md:pt-10">
+      <div className="text-center mb-6 sm:mb-8">
+        <h2 className="text-xl sm:text-2xl md:text-3xl font-bold text-gray-900 mb-2">
+          {title}
+        </h2>
+        <p className="text-sm sm:text-base text-gray-600 max-w-2xl mx-auto">
+          {subtitle}
+        </p>
+      </div>
+
+      <div className="max-w-3xl mx-auto space-y-3 sm:space-y-4">
+        {faqs.map((faq, index) => (
+          <div
+            key={index}
+            className="bg-white border border-gray-200 rounded-lg overflow-hidden shadow-sm hover:shadow-md transition-shadow duration-200"
+          >
+            <button
+              onClick={() => toggleFAQ(index)}
+              className="w-full px-4 sm:px-6 py-3 sm:py-4 text-left flex items-center justify-between gap-4 hover:bg-gray-50/50 transition-colors duration-200"
+            >
+              <span className="text-sm sm:text-base font-medium text-gray-900 flex-1">
+                {faq.question}
+              </span>
+              <span className="flex-shrink-0 ml-4">
+                {openIndex === index ? (
+                  <MinusIcon className="h-4 w-4 sm:h-5 sm:w-5 text-[#016ab7]" />
+                ) : (
+                  <PlusIcon className="h-4 w-4 sm:h-5 sm:w-5 text-[#016ab7]" />
+                )}
+              </span>
+            </button>
+
+            <div
+              className={`overflow-hidden transition-all duration-300 ease-in-out ${
+                openIndex === index ? 'max-h-[1000px]' : 'max-h-0'
+              }`}
+            >
+              <div className="px-4 sm:px-6 pb-4 sm:pb-5">
+                <div className="pt-1 border-t border-gray-100">
+                  <p className="text-sm sm:text-base text-gray-600 leading-relaxed pt-3">
+                    {faq.answer}
+                  </p>
+                </div>
+              </div>
+            </div>
+          </div>
+        ))}
+      </div>
+    </div>
+  );
+};
+
+// ============================================
+// BLOG DETAIL PAGE
+// ============================================
 
 const BlogDetailPage = () => {
   const params = useParams();
@@ -94,14 +181,21 @@ const BlogDetailPage = () => {
       });
       
       setProcessedContent(tempDiv.innerHTML);
-      setHeadings(extractedHeadings);
+      
+      // 🔥 CHANGE: Only keep H2 headings for Table of Contents
+      const h2Headings = extractedHeadings.filter(h => h.level === 2);
+      setHeadings(h2Headings);
+      
+      console.log('📝 All headings:', extractedHeadings.length);
+      console.log('📝 H2 headings only:', h2Headings.length);
     }
   }, [blog?.content]);
 
   // Track active heading on scroll
   useEffect(() => {
     const handleScroll = () => {
-      const headingElements = document.querySelectorAll('.blog-content h1[id], .blog-content h2[id], .blog-content h3[id]');
+      // 🔥 CHANGE: Only track H2 headings
+      const headingElements = document.querySelectorAll('.blog-content h2[id]');
       let currentId = '';
       
       headingElements.forEach((el) => {
@@ -227,6 +321,31 @@ const BlogDetailPage = () => {
     }
   };
 
+  // ============================================
+  // DYNAMIC FAQ HANDLING - FROM BACKEND
+  // ============================================
+  
+  const getFAQs = (): FAQItem[] => {
+    // Check if blog has FAQ data from backend
+    if (blog?.faq && Array.isArray(blog.faq) && blog.faq.length > 0) {
+      console.log('✅ Using dynamic FAQs from backend:', blog.faq.length);
+      return blog.faq;
+    }
+
+    // Fallback: If no FAQ data, return empty array (FAQ section won't render)
+    console.log('ℹ️ No FAQ data found in backend response');
+    return [];
+  };
+
+  const faqs = getFAQs();
+
+  // Log the FAQ data for debugging
+  useEffect(() => {
+    if (blog?.faq) {
+      console.log('📝 FAQ Data from backend:', blog.faq);
+    }
+  }, [blog]);
+
   if (isLoading) {
     return (
       <div className="min-h-screen bg-gray-50 py-8">
@@ -343,7 +462,7 @@ const BlogDetailPage = () => {
 
           {/* Main Grid Layout - Responsive with stable sidebars */}
           <div className="grid grid-cols-1 lg:grid-cols-12 gap-4 sm:gap-6 xl:gap-8 relative">
-            {/* Left Sidebar - Table of Contents - BUG-024 FIXED: Static, concise */}
+            {/* Left Sidebar - Table of Contents - SHOW ONLY H2 */}
             <div className="lg:col-span-3 xl:col-span-2 order-2 lg:order-1" ref={leftContainerRef}>
               {headings.length > 0 && (
                 <div 
@@ -360,20 +479,17 @@ const BlogDetailPage = () => {
                       Table of Contents
                     </h3>
                     <nav className="space-y-0.5">
+                      {/* 🔥 CHANGE: Only render H2 headings (level === 2) */}
                       {headings
-                        .filter(h => h.level === 2 || h.level === 3)
-                        .slice(0, 10)
+                        .filter(h => h.level === 2) // Only H2
                         .map((heading, index) => {
                           const isActive = activeHeading === heading.id;
-                          const paddingLeft = heading.level === 2 ? 'pl-0' : 'pl-4';
-                          const fontSize = heading.level === 2 ? 'text-xs sm:text-sm' : 'text-[10px] sm:text-xs';
-                          const fontWeight = heading.level === 2 ? 'font-medium' : 'font-normal';
                           
                           return (
                             <button
                               key={index}
                               onClick={() => scrollToHeading(heading.id)}
-                              className={`block w-full text-left px-2 py-1.5 rounded transition-all ${paddingLeft} ${fontSize} ${fontWeight} ${
+                              className={`block w-full text-left px-2 py-1.5 rounded transition-all text-xs sm:text-sm font-medium ${
                                 isActive
                                   ? 'bg-[#016ab7]/10 text-[#016ab7] border-l-2 border-[#016ab7]'
                                   : 'text-gray-600 hover:bg-gray-50 hover:text-[#016ab7]'
@@ -383,16 +499,13 @@ const BlogDetailPage = () => {
                             </button>
                           );
                         })}
-                      {headings.filter(h => h.level === 2 || h.level === 3).length > 10 && (
-                        <p className="text-[10px] text-gray-400 text-center pt-1">+{headings.filter(h => h.level === 2 || h.level === 3).length - 10} more</p>
-                      )}
                     </nav>
                   </div>
                 </div>
               )}
             </div>
 
-            {/* Main Content - BUG-026 FIXED: Improved design quality */}
+            {/* Main Content - With Dynamic FAQ Section */}
             <div className="lg:col-span-6 xl:col-span-7 order-1 lg:order-2">
               <article className="bg-white rounded-lg shadow-sm border border-gray-100 overflow-hidden">
                 <div className="p-4 sm:p-5 md:p-6 xl:p-8">
@@ -444,11 +557,29 @@ const BlogDetailPage = () => {
                     </div>
                   </header>
 
-                  {/* Dynamic HTML Content - BUG-026 FIXED: Improved styling */}
+                  {/* Dynamic HTML Content */}
                   <div 
                     className="blog-content prose prose-sm sm:prose-base lg:prose-lg max-w-none"
                     dangerouslySetInnerHTML={{ __html: sanitizedContent }}
                   />
+
+                  {/* DYNAMIC FAQ SECTION - Renders only if FAQ data exists */}
+                  {faqs.length > 0 && (
+                    <FAQSection 
+                      faqs={faqs}
+                      title="Frequently Asked Questions"
+                      subtitle={`Got questions about ${blog.title}? Find answers to the most common ones below.`}
+                    />
+                  )}
+
+                  {/* Optional: Show a message if no FAQ data */}
+                  {faqs.length === 0 && (
+                    <div className="mt-8 sm:mt-10 md:mt-12 border-t border-gray-200 pt-6 sm:pt-8 md:pt-10 text-center">
+                      <p className="text-sm text-gray-500">
+                        No FAQs available for this article yet.
+                      </p>
+                    </div>
+                  )}
                 </div>
               </article>
 
@@ -464,7 +595,7 @@ const BlogDetailPage = () => {
               </div>
             </div>
 
-            {/* Right Sidebar - BUG-023 FIXED: Static, concise, no sliding */}
+            {/* Right Sidebar */}
             <div className="lg:col-span-3 xl:col-span-3 order-3" ref={rightContainerRef}>
               <div 
                 ref={rightSidebarRef}
@@ -476,7 +607,7 @@ const BlogDetailPage = () => {
                 }}
               >
                 <div className="space-y-4 sm:space-y-6 max-h-[70vh] overflow-y-auto pr-1">
-                  {/* Suggested Blogs - BUG-023 FIXED: Static, no sliding, concise */}
+                  {/* Suggested Blogs */}
                   {relatedBlogs.length > 0 && (
                     <div className="bg-white rounded-lg shadow-sm border border-gray-100 p-3 sm:p-4">
                       <div className="flex items-center gap-2 mb-2 sm:mb-3 sticky top-0 bg-white z-10 py-1">
@@ -534,7 +665,7 @@ const BlogDetailPage = () => {
                     </div>
                   )}
 
-                  {/* Suggested Courses - Images and Price Removed */}
+                  {/* Suggested Courses */}
                   {suggestedCourses.length > 0 && (
                     <div className="bg-white rounded-lg shadow-sm border border-gray-100 p-3 sm:p-4">
                       <h3 className="text-xs sm:text-sm font-semibold text-gray-700 uppercase tracking-wider mb-2 sm:mb-3 sticky top-0 bg-white z-10 py-1">
