@@ -28,10 +28,13 @@ import {
   Layers,
   File,
   Video,
-  BookOpen
+  BookOpen,
+  Clipboard,
+  Check
 } from 'lucide-react';
 import RichTextEditor from '@/components/editor/RichTextEditor';
 import ContentPreview from '@/components/editor/ContentPreview';
+import { useCourseCategory } from '@/features/courseCategory/hooks/useCourseCategory';
 
 interface CloudinaryFile {
   url: string;
@@ -91,6 +94,11 @@ const CourseForm: React.FC<CourseFormProps> = ({
   const resourcesRef = useRef<HTMLDivElement>(null);
   const faqsRef = useRef<HTMLDivElement>(null);
 
+  // Fetch categories
+  const { useGetCourseCategories } = useCourseCategory();
+  const { data: categoriesData, isLoading: categoriesLoading } = useGetCourseCategories();
+  const categories = categoriesData?.data || [];
+
   const [formData, setFormData] = useState<CourseFormData>({
     title: '',
     slug: '',
@@ -117,6 +125,14 @@ const CourseForm: React.FC<CourseFormProps> = ({
   const [urlInput, setUrlInput] = useState('');
   const [activeSection, setActiveSection] = useState('basic');
   const [showPreview, setShowPreview] = useState(false);
+  const [isSlugManuallyEdited, setIsSlugManuallyEdited] = useState(false);
+  const [validationErrors, setValidationErrors] = useState<Record<string, string>>({});
+  
+  // Bulk FAQ import states
+  const [showBulkFaqImport, setShowBulkFaqImport] = useState(false);
+  const [bulkFaqInput, setBulkFaqInput] = useState('');
+  const [bulkImportError, setBulkImportError] = useState('');
+  const [bulkImportSuccess, setBulkImportSuccess] = useState(false);
 
   // Load initial data
   useEffect(() => {
@@ -125,14 +141,26 @@ const CourseForm: React.FC<CourseFormProps> = ({
       if (initialData.bannerImage?.url) {
         setBannerPreview(initialData.bannerImage.url);
       }
+      // If there's a slug from initial data, mark as manually edited
+      if (initialData.slug) {
+        setIsSlugManuallyEdited(true);
+      }
     }
   }, [initialData]);
+
+  // Auto-generate slug from title
+  const generateSlug = (title: string) => {
+    return title
+      .toLowerCase()
+      .trim()
+      .replace(/[^a-z0-9]+/g, '-')
+      .replace(/^-+|-+$/g, '');
+  };
 
   // Scroll to section function
   const scrollToSection = (sectionId: string) => {
     setActiveSection(sectionId);
     
-    // Map section IDs to refs
     const refMap = {
       basic: basicRef,
       pricing: pricingRef,
@@ -153,17 +181,45 @@ const CourseForm: React.FC<CourseFormProps> = ({
     }
   };
 
-  const generateSlug = (title: string) => {
-    return title
-      .toLowerCase()
-      .trim()
-      .replace(/[^a-z0-9]+/g, '-')
-      .replace(/^-+|-+$/g, '');
-  };
-
   const handleInputChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement | HTMLSelectElement>) => {
     const { name, value } = e.target;
-    setFormData(prev => ({ ...prev, [name]: value }));
+    
+    setFormData(prev => {
+      const newData = { ...prev, [name]: value };
+      
+      // Auto-generate slug if title changes and slug hasn't been manually edited
+      if (name === 'title' && !isSlugManuallyEdited) {
+        newData.slug = generateSlug(value);
+      }
+      
+      return newData;
+    });
+
+    // Clear validation error for this field
+    if (validationErrors[name]) {
+      setValidationErrors(prev => ({ ...prev, [name]: '' }));
+    }
+  };
+
+  const handleSlugChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const { value } = e.target;
+    // Only allow lowercase letters, numbers, and hyphens
+    const sanitizedSlug = value.toLowerCase().replace(/[^a-z0-9-]/g, '');
+    setFormData(prev => ({ ...prev, slug: sanitizedSlug }));
+    setIsSlugManuallyEdited(true);
+    
+    if (validationErrors.slug) {
+      setValidationErrors(prev => ({ ...prev, slug: '' }));
+    }
+  };
+
+  const handleCategoryChange = (e: React.ChangeEvent<HTMLSelectElement>) => {
+    const { value } = e.target;
+    setFormData(prev => ({ ...prev, category: value }));
+    
+    if (validationErrors.category) {
+      setValidationErrors(prev => ({ ...prev, category: '' }));
+    }
   };
 
   const handleNumberChange = (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -189,7 +245,6 @@ const CourseForm: React.FC<CourseFormProps> = ({
     const files = Array.from(e.target.files || []);
     setResourceFiles(prev => [...prev, ...files]);
     
-    // Add resource entries
     files.forEach(file => {
       const newResource: Resource = {
         name: file.name,
@@ -228,12 +283,10 @@ const CourseForm: React.FC<CourseFormProps> = ({
     }));
   };
 
-  // FIXED: Update FAQ using immutable pattern
   const updateFaq = (index: number, field: keyof FAQ, value: string) => {
     setFormData(prev => {
       const updatedFaqs = prev.faqs.map((faq, i) => {
         if (i === index) {
-          // Create a new object for the updated FAQ
           return { ...faq, [field]: value };
         }
         return faq;
@@ -242,12 +295,100 @@ const CourseForm: React.FC<CourseFormProps> = ({
     });
   };
 
-  // FIXED: Update Resource using immutable pattern
+  // Handle bulk FAQ import from JSON
+  const handleBulkFaqImport = () => {
+    setBulkImportError('');
+    setBulkImportSuccess(false);
+    
+    try {
+      // Try to parse the JSON
+      const parsedData = JSON.parse(bulkFaqInput);
+      
+      // Check if it's an array
+      let faqsArray: any[] = [];
+      
+      if (Array.isArray(parsedData)) {
+        faqsArray = parsedData;
+      } else if (parsedData.faqs && Array.isArray(parsedData.faqs)) {
+        // Support both { faqs: [...] } and direct array
+        faqsArray = parsedData.faqs;
+      } else {
+        throw new Error('Invalid format: Expected an array of FAQs or an object with a "faqs" array');
+      }
+      
+      // Validate each FAQ has question and answer
+      const validFaqs: FAQ[] = [];
+      const errors: string[] = [];
+      
+      faqsArray.forEach((item, index) => {
+        if (item.question && item.answer) {
+          validFaqs.push({
+            question: item.question.trim(),
+            answer: item.answer.trim()
+          });
+        } else {
+          errors.push(`FAQ #${index + 1}: Missing 'question' or 'answer' field`);
+        }
+      });
+      
+      if (errors.length > 0) {
+        setBulkImportError(`Some FAQs were skipped: ${errors.join('; ')}`);
+      }
+      
+      if (validFaqs.length === 0) {
+        setBulkImportError('No valid FAQs found. Each FAQ must have a "question" and "answer" field.');
+        return;
+      }
+      
+      // Add valid FAQs to the form
+      setFormData(prev => ({
+        ...prev,
+        faqs: [...prev.faqs, ...validFaqs]
+      }));
+      
+      // Show success message
+      setBulkImportSuccess(true);
+      setBulkFaqInput('');
+      
+      // Clear success message after 3 seconds
+      setTimeout(() => {
+        setBulkImportSuccess(false);
+      }, 3000);
+      
+      // Close the modal after successful import
+      setTimeout(() => {
+        setShowBulkFaqImport(false);
+      }, 1500);
+      
+    } catch (error) {
+      if (error instanceof SyntaxError) {
+        setBulkImportError('Invalid JSON format. Please check your syntax.');
+      } else {
+        setBulkImportError(error instanceof Error ? error.message : 'Failed to import FAQs');
+      }
+    }
+  };
+
+  // Example JSON template for the user
+  const exampleFaqJson = `[
+  {
+    "question": "What is the duration of this course?",
+    "answer": "The course consists of 40 hours of video content, spread across 12 modules."
+  },
+  {
+    "question": "Is there any prerequisite for this course?",
+    "answer": "Basic knowledge of programming is recommended, but not mandatory."
+  },
+  {
+    "question": "Will I get a certificate after completion?",
+    "answer": "Yes, you will receive a verified certificate upon completing all modules and assignments."
+  }
+]`;
+
   const updateResource = (index: number, field: keyof Resource, value: string) => {
     setFormData(prev => {
       const updatedResources = prev.resources.map((resource, i) => {
         if (i === index) {
-          // Create a new object for the updated resource
           return { ...resource, [field]: value };
         }
         return resource;
@@ -290,8 +431,57 @@ const CourseForm: React.FC<CourseFormProps> = ({
     }));
   };
 
+  const validateForm = () => {
+    const errors: Record<string, string> = {};
+    
+    if (!formData.title.trim()) {
+      errors.title = 'Title is required';
+    }
+    
+    if (!formData.slug.trim()) {
+      errors.slug = 'Slug is required';
+    } else if (!/^[a-z0-9-]+$/.test(formData.slug)) {
+      errors.slug = 'Slug can only contain lowercase letters, numbers, and hyphens';
+    }
+    
+    if (!formData.category.trim()) {
+      errors.category = 'Category is required';
+    }
+    
+    if (!formData.shortDescription.trim()) {
+      errors.shortDescription = 'Short description is required';
+    }
+    
+    if (formData.price <= 0) {
+      errors.price = 'Price must be greater than 0';
+    }
+    
+    setValidationErrors(errors);
+    return Object.keys(errors).length === 0;
+  };
+
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
+    
+    // Validate form
+    if (!validateForm()) {
+      // Scroll to the first error
+      const firstErrorField = Object.keys(validationErrors)[0];
+      if (firstErrorField) {
+        const refMap: Record<string, React.RefObject<HTMLDivElement | null>> = {
+          title: basicRef,
+          slug: basicRef,
+          category: basicRef,
+          shortDescription: basicRef,
+          price: pricingRef,
+        };
+        const ref = refMap[firstErrorField];
+        if (ref && ref.current) {
+          ref.current.scrollIntoView({ behavior: 'smooth', block: 'center' });
+        }
+      }
+      return;
+    }
     
     const formDataToSend = new FormData();
     
@@ -392,50 +582,84 @@ const CourseForm: React.FC<CourseFormProps> = ({
               type="text"
               name="title"
               value={formData.title}
-              onChange={(e) => {
-                handleInputChange(e);
-                if (!formData.slug || formData.slug === generateSlug(formData.title)) {
-                  setFormData(prev => ({
-                    ...prev,
-                    slug: generateSlug(e.target.value)
-                  }));
-                }
-              }}
+              onChange={handleInputChange}
               placeholder="Enter course title"
-              className="w-full px-4 py-2.5 border border-gray-300 rounded-xl focus:outline-none focus:ring-2 focus:ring-teal-500 focus:border-transparent text-sm"
+              className={`w-full px-4 py-2.5 border rounded-xl focus:outline-none focus:ring-2 focus:ring-teal-500 focus:border-transparent text-sm ${
+                validationErrors.title ? 'border-red-500' : 'border-gray-300'
+              }`}
               required
             />
+            {validationErrors.title && (
+              <p className="text-xs text-red-500 mt-1">{validationErrors.title}</p>
+            )}
           </div>
 
           <div>
             <label className="block text-sm font-medium text-gray-700 mb-1.5">
               Slug <span className="text-red-500">*</span>
             </label>
-            <input
-              type="text"
-              name="slug"
-              value={formData.slug}
-              onChange={handleInputChange}
-              placeholder="course-slug"
-              className="w-full px-4 py-2.5 border border-gray-300 rounded-xl focus:outline-none focus:ring-2 focus:ring-teal-500 focus:border-transparent text-sm"
-              required
-            />
-            <p className="text-xs text-gray-400 mt-1">URL-friendly: lowercase, numbers, hyphens only</p>
+            <div className="relative">
+              <input
+                type="text"
+                name="slug"
+                value={formData.slug}
+                onChange={handleSlugChange}
+                placeholder="course-slug"
+                className={`w-full px-4 py-2.5 border rounded-xl focus:outline-none focus:ring-2 focus:ring-teal-500 focus:border-transparent text-sm ${
+                  validationErrors.slug ? 'border-red-500' : 'border-gray-300'
+                }`}
+                required
+              />
+              {!isSlugManuallyEdited && formData.title && (
+                <span className="absolute right-3 top-1/2 -translate-y-1/2 text-xs text-teal-500">
+                  Auto
+                </span>
+              )}
+            </div>
+            {validationErrors.slug ? (
+              <p className="text-xs text-red-500 mt-1">{validationErrors.slug}</p>
+            ) : (
+              <p className="text-xs text-gray-400 mt-1">
+                URL-friendly: lowercase, numbers, hyphens only
+                {!isSlugManuallyEdited && formData.title && (
+                  <span className="text-teal-500 ml-1">(auto-generated from title)</span>
+                )}
+              </p>
+            )}
           </div>
 
           <div>
             <label className="block text-sm font-medium text-gray-700 mb-1.5">
               Category <span className="text-red-500">*</span>
             </label>
-            <input
-              type="text"
+            <select
               name="category"
               value={formData.category}
-              onChange={handleInputChange}
-              placeholder="e.g., Web Development"
-              className="w-full px-4 py-2.5 border border-gray-300 rounded-xl focus:outline-none focus:ring-2 focus:ring-teal-500 focus:border-transparent text-sm"
+              onChange={handleCategoryChange}
+              className={`w-full px-4 py-2.5 border rounded-xl focus:outline-none focus:ring-2 focus:ring-teal-500 focus:border-transparent text-sm bg-white ${
+                validationErrors.category ? 'border-red-500' : 'border-gray-300'
+              }`}
               required
-            />
+              disabled={categoriesLoading}
+            >
+              <option value="">Select a category</option>
+              {categories.map((cat) => (
+                <option key={cat._id} value={cat.name}>
+                  {cat.name}
+                </option>
+              ))}
+            </select>
+            {validationErrors.category && (
+              <p className="text-xs text-red-500 mt-1">{validationErrors.category}</p>
+            )}
+            {categoriesLoading && (
+              <p className="text-xs text-gray-400 mt-1">Loading categories...</p>
+            )}
+            {categories.length === 0 && !categoriesLoading && (
+              <p className="text-xs text-amber-600 mt-1">
+                No categories available. Please create a category first.
+              </p>
+            )}
           </div>
 
           <div>
@@ -462,9 +686,14 @@ const CourseForm: React.FC<CourseFormProps> = ({
               onChange={handleInputChange}
               rows={3}
               placeholder="Brief description of the course"
-              className="w-full px-4 py-2.5 border border-gray-300 rounded-xl focus:outline-none focus:ring-2 focus:ring-teal-500 focus:border-transparent text-sm resize-none"
+              className={`w-full px-4 py-2.5 border rounded-xl focus:outline-none focus:ring-2 focus:ring-teal-500 focus:border-transparent text-sm resize-none ${
+                validationErrors.shortDescription ? 'border-red-500' : 'border-gray-300'
+              }`}
               required
             />
+            {validationErrors.shortDescription && (
+              <p className="text-xs text-red-500 mt-1">{validationErrors.shortDescription}</p>
+            )}
           </div>
 
           <div>
@@ -522,11 +751,17 @@ const CourseForm: React.FC<CourseFormProps> = ({
                 value={formData.price}
                 onChange={handleNumberChange}
                 placeholder="0"
-                className="w-full pl-9 pr-4 py-2.5 border border-gray-300 rounded-xl focus:outline-none focus:ring-2 focus:ring-teal-500 focus:border-transparent text-sm"
+                className={`w-full pl-9 pr-4 py-2.5 border rounded-xl focus:outline-none focus:ring-2 focus:ring-teal-500 focus:border-transparent text-sm ${
+                  validationErrors.price ? 'border-red-500' : 'border-gray-300'
+                }`}
                 required
                 min="0"
+                step="0.01"
               />
             </div>
+            {validationErrors.price && (
+              <p className="text-xs text-red-500 mt-1">{validationErrors.price}</p>
+            )}
           </div>
 
           <div>
@@ -543,6 +778,7 @@ const CourseForm: React.FC<CourseFormProps> = ({
                 placeholder="0"
                 className="w-full pl-9 pr-4 py-2.5 border border-gray-300 rounded-xl focus:outline-none focus:ring-2 focus:ring-teal-500 focus:border-transparent text-sm"
                 min="0"
+                step="0.01"
               />
             </div>
             <p className="text-xs text-gray-400 mt-1">Set to 0 for no discount</p>
@@ -771,7 +1007,7 @@ const CourseForm: React.FC<CourseFormProps> = ({
             </div>
           </div>
 
-          {/* Resource List - FIXED: Using updateResource */}
+          {/* Resource List */}
           {formData.resources.length > 0 && (
             <div className="mt-4 space-y-2">
               {formData.resources.map((resource, index) => (
@@ -812,7 +1048,7 @@ const CourseForm: React.FC<CourseFormProps> = ({
         </div>
       </div>
 
-      {/* FAQs Section - FIXED: Using updateFaq */}
+      {/* FAQs Section */}
       <div 
         ref={faqsRef} 
         id="faqs" 
@@ -820,14 +1056,24 @@ const CourseForm: React.FC<CourseFormProps> = ({
       >
         <div className="flex items-center justify-between mb-4">
           <h3 className="text-lg font-semibold text-gray-900">FAQs</h3>
-          <button
-            type="button"
-            onClick={addFaq}
-            className="flex items-center gap-2 px-4 py-2 bg-teal-600 text-white rounded-xl hover:bg-teal-700 transition-colors text-sm"
-          >
-            <Plus className="w-4 h-4" />
-            Add FAQ
-          </button>
+          <div className="flex gap-2">
+            <button
+              type="button"
+              onClick={() => setShowBulkFaqImport(true)}
+              className="flex items-center gap-2 px-4 py-2 bg-blue-600 text-white rounded-xl hover:bg-blue-700 transition-colors text-sm"
+            >
+              <Clipboard className="w-4 h-4" />
+              Import JSON
+            </button>
+            <button
+              type="button"
+              onClick={addFaq}
+              className="flex items-center gap-2 px-4 py-2 bg-teal-600 text-white rounded-xl hover:bg-teal-700 transition-colors text-sm"
+            >
+              <Plus className="w-4 h-4" />
+              Add FAQ
+            </button>
+          </div>
         </div>
 
         <div className="space-y-3">
@@ -863,11 +1109,113 @@ const CourseForm: React.FC<CourseFormProps> = ({
         </div>
       </div>
 
+      {/* Bulk FAQ Import Modal */}
+      {showBulkFaqImport && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 backdrop-blur-sm">
+          <div className="bg-white rounded-2xl p-6 max-w-2xl w-full mx-4 max-h-[90vh] overflow-y-auto shadow-xl">
+            <div className="flex items-center justify-between mb-4">
+              <h3 className="text-xl font-semibold text-gray-900">Import FAQs from JSON</h3>
+              <button
+                type="button"
+                onClick={() => {
+                  setShowBulkFaqImport(false);
+                  setBulkImportError('');
+                  setBulkFaqInput('');
+                }}
+                className="p-2 hover:bg-gray-100 rounded-lg transition-colors"
+              >
+                <X className="w-5 h-5 text-gray-500" />
+              </button>
+            </div>
+
+            <div className="space-y-4">
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-1.5">
+                  Paste your FAQ JSON here
+                </label>
+                <textarea
+                  value={bulkFaqInput}
+                  onChange={(e) => {
+                    setBulkFaqInput(e.target.value);
+                    setBulkImportError('');
+                    setBulkImportSuccess(false);
+                  }}
+                  rows={10}
+                  placeholder={`[
+  {
+    "question": "What is this course about?",
+    "answer": "This course covers..."
+  },
+  {
+    "question": "Who is this course for?",
+    "answer": "This course is designed for..."
+  }
+]`}
+                  className="w-full px-4 py-3 border border-gray-300 rounded-xl focus:outline-none focus:ring-2 focus:ring-teal-500 focus:border-transparent text-sm font-mono"
+                />
+              </div>
+
+              <div className="bg-blue-50 border border-blue-200 rounded-xl p-4">
+                <p className="text-sm font-medium text-blue-800 mb-1">📋 Expected Format:</p>
+                <p className="text-xs text-blue-700">Array of objects with "question" and "answer" fields</p>
+                <button
+                  type="button"
+                  onClick={() => {
+                    setBulkFaqInput(exampleFaqJson);
+                    setBulkImportError('');
+                    setBulkImportSuccess(false);
+                  }}
+                  className="mt-2 text-xs text-blue-600 hover:text-blue-800 underline"
+                >
+                  Load example JSON
+                </button>
+              </div>
+
+              {bulkImportError && (
+                <div className="bg-red-50 border border-red-200 rounded-xl p-3 flex items-start gap-2">
+                  <AlertCircle className="w-5 h-5 text-red-500 flex-shrink-0 mt-0.5" />
+                  <p className="text-sm text-red-700">{bulkImportError}</p>
+                </div>
+              )}
+
+              {bulkImportSuccess && (
+                <div className="bg-green-50 border border-green-200 rounded-xl p-3 flex items-start gap-2">
+                  <CheckCircle className="w-5 h-5 text-green-500 flex-shrink-0 mt-0.5" />
+                  <p className="text-sm text-green-700">FAQs imported successfully!</p>
+                </div>
+              )}
+
+              <div className="flex gap-3 justify-end pt-2 border-t border-gray-200">
+                <button
+                  type="button"
+                  onClick={() => {
+                    setShowBulkFaqImport(false);
+                    setBulkImportError('');
+                    setBulkFaqInput('');
+                  }}
+                  className="px-6 py-2 border border-gray-300 text-gray-700 rounded-xl hover:bg-gray-50 transition-colors text-sm font-medium"
+                >
+                  Cancel
+                </button>
+                <button
+                  type="button"
+                  onClick={handleBulkFaqImport}
+                  disabled={!bulkFaqInput.trim()}
+                  className="px-6 py-2 bg-gradient-to-r from-teal-600 to-cyan-600 text-white rounded-xl hover:from-teal-700 hover:to-cyan-700 transition-all shadow-lg shadow-teal-500/25 disabled:opacity-50 disabled:cursor-not-allowed text-sm font-medium"
+                >
+                  Import FAQs
+                </button>
+              </div>
+            </div>
+          </div>
+        </div>
+      )}
+
       {/* Form Actions */}
       <div className="flex flex-col sm:flex-row gap-3 justify-end pt-4 border-t border-gray-200">
         <button
           type="submit"
-          disabled={loading}
+          disabled={loading || categoriesLoading}
           className="px-8 py-2.5 bg-gradient-to-r from-teal-600 to-cyan-600 text-white rounded-xl hover:from-teal-700 hover:to-cyan-700 transition-all shadow-lg shadow-teal-500/25 disabled:opacity-50 disabled:cursor-not-allowed text-sm font-medium"
         >
           {loading ? (

@@ -8,8 +8,8 @@ import {
   setLoading, 
   logout, 
   setRefreshing,
-  hydrateUser,
-  setInitialized
+  setInitialized,
+  setError
 } from '../slices/authSlice';
 
 // Helper functions with SSR safety
@@ -39,12 +39,13 @@ export const useAuth = () => {
   const dispatch = useAppDispatch();
   const router = useRouter();
   const pathname = usePathname();
-  const { user, isAuthenticated, isLoading, isRefreshing, initialized } = useAppSelector((state) => state.auth);
+  const { user, isAuthenticated, isLoading, isRefreshing, initialized, error } = useAppSelector((state) => state.auth);
   const [refreshAttempted, setRefreshAttempted] = useState(false);
   const [isMounted, setIsMounted] = useState(false);
   const [authChecked, setAuthChecked] = useState(false);
+  const [refreshFailed, setRefreshFailed] = useState(false);
   
-  const [refreshToken, { isLoading: isRefreshingToken }] = useRefreshTokenMutation();
+  const [refreshToken] = useRefreshTokenMutation();
   const [logoutMutation] = useLogoutMutation();
   
   // Set mounted flag - this runs only on client
@@ -59,23 +60,6 @@ export const useAuth = () => {
   const isProtectedPage = pathname?.startsWith('/dashboard') || 
                           pathname?.startsWith('/profile') || 
                           pathname?.startsWith('/settings');
-
-  // Only log on client
-  useEffect(() => {
-    if (isMounted) {
-      console.log('🔍 useAuth: Current state:', {
-        pathname,
-        isAuthPage,
-        isProtectedPage,
-        isMounted,
-        authChecked,
-        initialized,
-        isAuthenticated,
-        hasToken: !!getToken(),
-        hasUser: !!user
-      });
-    }
-  }, [pathname, isAuthPage, isProtectedPage, isMounted, authChecked, initialized, isAuthenticated, user]);
 
   // Hydrate user from localStorage on mount - client only
   useEffect(() => {
@@ -108,9 +92,10 @@ export const useAuth = () => {
   const { 
     data, 
     isLoading: queryLoading, 
-    error, 
+    error: queryError, 
     refetch,
     isError,
+    isSuccess,
   } = useGetMeQuery(undefined, {
     // Skip on server, on auth pages, or if no token
     skip: typeof window === 'undefined' ||
@@ -118,52 +103,58 @@ export const useAuth = () => {
           !authChecked ||
           isAuthPage || 
           !isProtectedPage ||
-          isRefreshing || 
-          isRefreshingToken ||
-          !getToken(),
-    refetchOnFocus: false,
-    refetchOnReconnect: false,
+          isRefreshing ||
+          !getToken() ||
+          refreshFailed,
+    refetchOnFocus: true,
+    refetchOnReconnect: true,
     pollingInterval: 300000,
   });
 
   // Handle user data
   useEffect(() => {
-    if (data && isMounted) {
+    if (isSuccess && data && isMounted) {
       console.log('✅ User data fetched from API:', data);
       dispatch(setUser(data));
       setRefreshAttempted(false);
+      setRefreshFailed(false);
+      setAuthChecked(true);
     }
-  }, [data, dispatch, isMounted]);
+  }, [data, isSuccess, dispatch, isMounted]);
 
   // Handle errors
   useEffect(() => {
-    if (!isMounted || !authChecked) return;
+    if (!isMounted || !authChecked || isAuthPage) return;
     
-    if (isError && error && !isAuthPage && isProtectedPage) {
-      console.log('❌ GetMe error:', error);
+    if (isError && queryError && isProtectedPage) {
+      console.log('❌ GetMe error:', queryError);
       
-      const is401Error = typeof error === 'object' && error !== null && 'status' in error && error.status === 401;
+      // Check if it's a 401 error
+      const is401Error = typeof queryError === 'object' && 
+        queryError !== null && 
+        'status' in queryError && 
+        queryError.status === 401;
       
       if (is401Error) {
         const token = getToken();
         console.log('🔍 401 error - Token exists?', !!token, 'Refresh attempted?', refreshAttempted);
         
-        if (token && !refreshAttempted && !isRefreshing && !isRefreshingToken) {
+        if (token && !refreshAttempted && !isRefreshing) {
           console.log('🔄 401 error, attempting to refresh...');
-          handleRefresh();
+          handleRefreshToken();
         } else if (refreshAttempted || !token) {
           console.log('❌ No token or refresh failed, redirecting to login...');
           clearAuthData();
           dispatch(logout());
-          if (isProtectedPage && typeof window !== 'undefined') {
-            router.push('/login');
+          if (typeof window !== 'undefined') {
+            window.location.href = '/login';
           }
         }
       } else {
         dispatch(setLoading(false));
       }
     }
-  }, [isError, error, dispatch, refreshAttempted, isRefreshing, isRefreshingToken, isMounted, authChecked, isAuthPage, router, isProtectedPage]);
+  }, [isError, queryError, dispatch, refreshAttempted, isRefreshing, isMounted, authChecked, isAuthPage, isProtectedPage]);
 
   // Set initialized when auth check is complete
   useEffect(() => {
@@ -175,7 +166,7 @@ export const useAuth = () => {
   }, [authChecked, isMounted, dispatch]);
 
   // Handle refresh token
-  const handleRefresh = useCallback(async () => {
+  const handleRefreshToken = useCallback(async () => {
     if (typeof window === 'undefined') return false;
     
     if (isAuthPage) {
@@ -206,23 +197,32 @@ export const useAuth = () => {
         console.log('✅ Refresh successful, new token obtained');
         localStorage.setItem('accessToken', result.data.accessToken);
         document.cookie = `accessToken=${result.data.accessToken}; path=/; max-age=86400; SameSite=Lax`;
+        
+        // Refetch user data with new token
         await refetch();
+        setRefreshFailed(false);
         return true;
+      } else {
+        console.log('❌ No token in refresh response');
+        setRefreshFailed(true);
+        clearAuthData();
+        dispatch(logout());
+        return false;
       }
-      return false;
     } catch (error: any) {
       console.error('❌ Refresh failed:', error);
+      setRefreshFailed(true);
       clearAuthData();
       dispatch(logout());
       
       if (isProtectedPage && typeof window !== 'undefined') {
-        router.push('/login');
+        window.location.href = '/login';
       }
       return false;
     } finally {
       dispatch(setRefreshing(false));
     }
-  }, [dispatch, refreshToken, refetch, isAuthPage, isProtectedPage, router, refreshAttempted]);
+  }, [dispatch, refreshToken, refetch, isAuthPage, isProtectedPage, refreshAttempted]);
 
   // Handle logout
   const handleLogout = useCallback(async () => {
@@ -240,31 +240,19 @@ export const useAuth = () => {
   }, [dispatch, logoutMutation, router]);
 
   // Determine if we should show loading
-  const shouldShowLoading = (isLoading || isRefreshing || !authChecked) && isProtectedPage;
+  const shouldShowLoading = (isLoading || isRefreshing || !authChecked) && isProtectedPage && !refreshFailed;
 
   const finalState = {
     user,
-    isAuthenticated: isMounted ? isAuthenticated && !!getToken() : false,
+    isAuthenticated: isMounted ? isAuthenticated && !!getToken() && !refreshFailed : false,
     isLoading: shouldShowLoading,
     isRefreshing,
     initialized: initialized && authChecked,
+    error,
     logout: handleLogout,
     refetch,
-    refreshToken: handleRefresh,
+    refreshToken: handleRefreshToken,
   };
-
-  // Only log final state on client
-  useEffect(() => {
-    if (isMounted) {
-      console.log('🔍 useAuth: Final state:', {
-        ...finalState,
-        hasToken: !!getToken(),
-        authChecked,
-        initialized,
-        isAuthenticated: finalState.isAuthenticated
-      });
-    }
-  }, [isMounted, authChecked, initialized, isAuthenticated, user, isLoading, isRefreshing]);
 
   return finalState;
 };

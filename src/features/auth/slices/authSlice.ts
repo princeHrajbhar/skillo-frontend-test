@@ -1,7 +1,7 @@
 // src/features/auth/slices/authSlice.ts
 import { createSlice, PayloadAction } from '@reduxjs/toolkit';
-import { UserResponse } from '../api/authApi'; // ✅ Correct path
-import { authApi } from '../api/authApi'; // ✅ Correct path
+import { UserResponse } from '../api/authApi';
+import { authApi } from '../api/authApi';
 
 interface AuthState {
   user: UserResponse | null;
@@ -60,21 +60,11 @@ const authSlice = createSlice({
         document.cookie = 'accessToken=; path=/; expires=Thu, 01 Jan 1970 00:00:01 GMT;';
       }
     },
-    hydrateUser: (state) => {
-      if (typeof window !== 'undefined') {
-        const storedUser = localStorage.getItem('user');
-        const storedToken = localStorage.getItem('accessToken');
-        
-        if (storedUser && storedToken) {
-          try {
-            const user = JSON.parse(storedUser);
-            state.user = user;
-            state.isAuthenticated = true;
-          } catch (error) {
-            console.error('Failed to parse stored user:', error);
-          }
-        }
-      }
+    resetAuth: (state) => {
+      state.isLoading = false;
+      state.isRefreshing = false;
+      state.error = null;
+      state.initialized = false;
     },
   },
   extraReducers: (builder) => {
@@ -84,6 +74,7 @@ const authSlice = createSlice({
         (state, action) => {
           state.isAuthenticated = true;
           state.isLoading = false;
+          state.isRefreshing = false;
           state.error = null;
           state.initialized = true;
           if (action.payload?.data?.user) {
@@ -109,6 +100,7 @@ const authSlice = createSlice({
           state.isAuthenticated = false;
           state.isLoading = false;
           state.isRefreshing = false;
+          state.error = null;
           state.initialized = true;
           if (typeof window !== 'undefined') {
             localStorage.removeItem('accessToken');
@@ -134,6 +126,7 @@ const authSlice = createSlice({
       .addMatcher(
         authApi.endpoints.getMe.matchRejected,
         (state, action: any) => {
+          // Only set loading to false if it's not a 401 (will be handled by refresh)
           if (action.error?.status !== 401) {
             state.isLoading = false;
           }
@@ -146,6 +139,7 @@ const authSlice = createSlice({
         (state, action) => {
           state.isRefreshing = false;
           state.error = null;
+          state.initialized = true;
           if (action.payload?.data?.accessToken && typeof window !== 'undefined') {
             localStorage.setItem('accessToken', action.payload.data.accessToken);
             document.cookie = `accessToken=${action.payload.data.accessToken}; path=/; max-age=86400; SameSite=Lax`;
@@ -156,6 +150,7 @@ const authSlice = createSlice({
         authApi.endpoints.refreshToken.matchPending,
         (state) => {
           state.isRefreshing = true;
+          state.error = null;
         }
       )
       .addMatcher(
@@ -183,7 +178,7 @@ export const {
   setError, 
   logout, 
   setInitialized,
-  hydrateUser 
+  resetAuth
 } = authSlice.actions;
 
 export default authSlice.reducer;
