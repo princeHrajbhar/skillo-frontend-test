@@ -92,10 +92,6 @@
   animation: scaleIn 0.2s ease-out;
 }
 
-
-
-
-
 @layer base {
   html {
     -webkit-font-smoothing: antialiased;
@@ -138,14 +134,9 @@
   background: #9ca3af;
 }
 
-
-
-
-
-
-
-
-
+/* ==========================================================================
+   GLOBAL BASE STYLES
+   ========================================================================== */
 
 html,
 body {
@@ -169,7 +160,153 @@ body {
   box-sizing: border-box;
 }
 
-/* Animations */
+/* ==========================================================================
+   GLOBAL IMAGE STYLES - SAFE FOR SLIDER
+   ========================================================================== */
+
+/* Default image styles - safe for all images */
+img {
+  max-width: 100%;
+  height: auto;
+  display: block; /* CRITICAL: Prevents whitespace below images */
+}
+
+/* ==========================================================================
+   HERO SLIDER PROTECTION - CRITICAL FIXES
+   ========================================================================== */
+
+/* Protect ALL hero slider sections and their children from global styles */
+section.hero-slider,
+section.hero-slider *,
+.hero-slider-section,
+.hero-slider-section * {
+  margin: 0 !important;
+  padding: 0 !important;
+  line-height: 0 !important;
+  font-size: 0 !important; /* Removes inline-block spacing */
+  border-radius: 0 !important;
+  border: none !important;
+  box-shadow: none !important;
+  background-color: transparent !important;
+}
+
+/* Restore font-size ONLY for elements that need text */
+section.hero-slider .slide-content,
+section.hero-slider .slide-text,
+section.hero-slider button,
+section.hero-slider .dots-container,
+section.hero-slider .counter {
+  font-size: 16px !important; /* Restore readable font size */
+  line-height: 1.5 !important; /* Restore readable line height */
+}
+
+/* Protect hero slider images from global styles */
+section.hero-slider img,
+section.hero-slider .slide img,
+.hero-slider-section img {
+  display: block !important;
+  margin: 0 !important;
+  padding: 0 !important;
+  border-radius: 0 !important;
+  max-width: 100% !important;
+  width: 100% !important;
+  height: auto !important;
+  box-sizing: border-box !important;
+  object-fit: cover !important;
+  background-color: transparent !important;
+  box-shadow: none !important;
+  border: none !important;
+}
+
+/* Protect slider track */
+section.hero-slider .slider-track,
+section.hero-slider .flex {
+  display: flex !important;
+  flex-direction: row !important;
+  flex-wrap: nowrap !important;
+  line-height: 0 !important;
+  font-size: 0 !important;
+  margin: 0 !important;
+  padding: 0 !important;
+  gap: 0 !important;
+  row-gap: 0 !important;
+  column-gap: 0 !important;
+}
+
+/* Protect individual slides */
+section.hero-slider .slide,
+section.hero-slider .min-w-full {
+  flex: 0 0 100% !important;
+  min-width: 100% !important;
+  max-width: 100% !important;
+  width: 100% !important;
+  line-height: 0 !important;
+  font-size: 0 !important;
+  margin: 0 !important;
+  padding: 0 !important;
+  display: flex !important;
+  justify-content: center !important;
+  align-items: center !important;
+}
+
+/* Protect slider container */
+section.hero-slider {
+  position: relative !important;
+  width: 100% !important;
+  overflow: hidden !important;
+  background: #ffffff !important;
+  display: block !important;
+  line-height: 0 !important;
+  font-size: 0 !important;
+}
+
+/* Protect navigation buttons */
+section.hero-slider button {
+  font-size: 16px !important;
+  line-height: 1 !important;
+  margin: 0 !important;
+  padding: 12px !important;
+  border: 1px solid #e5e7eb !important;
+  background: rgba(255, 255, 255, 0.9) !important;
+  backdrop-filter: blur(4px) !important;
+  transition: transform 0.2s ease !important;
+}
+
+section.hero-slider button:hover {
+  transform: scale(1.1) !important;
+}
+
+/* Protect dots */
+section.hero-slider .dots-container,
+section.hero-slider .absolute.bottom-5 {
+  font-size: 0 !important;
+  line-height: 0 !important;
+  display: flex !important;
+  gap: 8px !important;
+}
+
+section.hero-slider .dots-container button,
+section.hero-slider .absolute.bottom-5 button {
+  padding: 0 !important;
+  margin: 0 !important;
+  border: none !important;
+  transition: all 0.3s ease !important;
+  display: inline-block !important;
+}
+
+/* Protect counter */
+section.hero-slider .counter,
+section.hero-slider .absolute.bottom-5.right-5 {
+  font-size: 12px !important;
+  line-height: 1.5 !important;
+  background: rgba(0, 0, 0, 0.5) !important;
+  color: #ffffff !important;
+  backdrop-filter: blur(4px) !important;
+}
+
+/* ==========================================================================
+   ANIMATIONS
+   ========================================================================== */
 
 @keyframes fadeInUp {
   from {
@@ -215,7 +352,6 @@ body {
 }
 
 /* Hide Scrollbar */
-
 .hide-scrollbar::-webkit-scrollbar {
   display: none;
 }
@@ -226,14 +362,16 @@ body {
 }
 
 /* Mobile */
-
 @media (max-width: 640px) {
   .animate-fade-in-up {
     animation-duration: 0.4s;
   }
 }
 
-/* Global Reusable SEO Content Section Styles */
+/* ==========================================================================
+   GLOBAL SEO CONTENT SECTION STYLES
+   ========================================================================== */
+
 .seo-content-section {
   max-width: 80rem;
   margin-left: auto;
@@ -315,13 +453,10 @@ body {
   color: #475569;
 }
 
-
-
-
-
 /* ==========================================================================
-   RichTextEditor (CKEditor) + CMS content rendering
+   RICH TEXT EDITOR (CKEditor) + CMS CONTENT RENDERING
    ========================================================================== */
+
 .rte-editable .ck-editor__editable,
 .ck-editor__editable_inline {
   min-height: 320px;
@@ -347,6 +482,7 @@ body {
   font-size: 1rem;
   word-break: break-word;
 }
+
 .cms-content h1 {
   font-size: 2rem;
   font-weight: 700;
@@ -354,6 +490,7 @@ body {
   margin: 1.5rem 0 0.75rem;
   line-height: 1.25;
 }
+
 .cms-content h2 {
   font-size: 1.5rem;
   font-weight: 700;
@@ -361,42 +498,52 @@ body {
   margin: 1.5rem 0 0.75rem;
   line-height: 1.3;
 }
+
 .cms-content h3 {
   font-size: 1.25rem;
   font-weight: 600;
   color: #1e293b;
   margin: 1.25rem 0 0.5rem;
 }
+
 .cms-content h4 {
   font-size: 1.1rem;
   font-weight: 600;
   color: #1e293b;
   margin: 1rem 0 0.5rem;
 }
+
 .cms-content p {
   margin: 0 0 1.1rem;
 }
+
 .cms-content a {
   color: #016ab7;
   text-decoration: underline;
 }
+
 .cms-content a:hover {
   color: #015a9c;
 }
+
 .cms-content ul,
 .cms-content ol {
   margin: 0.75rem 0 1.2rem;
   padding-left: 1.5rem;
 }
+
 .cms-content ul {
   list-style: disc;
 }
+
 .cms-content ol {
   list-style: decimal;
 }
+
 .cms-content li {
   margin-bottom: 0.35rem;
 }
+
 .cms-content blockquote {
   border-left: 4px solid #6cb84d;
   padding: 0.25rem 0 0.25rem 1rem;
@@ -404,34 +551,43 @@ body {
   font-style: italic;
   color: #475569;
 }
+
+/* CMS Images - Scoped ONLY to .cms-content */
 .cms-content img {
   max-width: 100%;
   height: auto;
   border-radius: 0.5rem;
   margin: 1.25rem 0;
+  display: block; /* Consistent with global img */
 }
+
 .cms-content figure {
   margin: 1.25rem 0;
 }
+
 .cms-content iframe {
   max-width: 100%;
   border-radius: 0.5rem;
   margin: 1.25rem 0;
 }
+
 .cms-content .table-scroll-wrapper {
   overflow-x: auto;
   -webkit-overflow-scrolling: touch;
   max-width: 100%;
   margin: 1.25rem 0;
 }
+
 .cms-content table {
   border-collapse: collapse;
   width: 100%;
   min-width: 480px;
 }
+
 .cms-content thead {
   background-image: linear-gradient(120deg, #016ab7 0%, #6cb84d 100%);
 }
+
 .cms-content thead th {
   color: #ffffff;
   font-weight: 700;
@@ -440,24 +596,101 @@ body {
   font-size: 0.85rem;
   letter-spacing: 0.02em;
 }
+
 .cms-content td {
   padding: 0.625rem 1rem;
   border-bottom: 1px solid #e5f0fa;
   border-right: 1px solid #e5f0fa;
   vertical-align: top;
 }
+
 .cms-content tbody tr:nth-child(even) {
   background-color: #f0f7ff;
 }
 
-/* src/app/globals.css */
+/* ==========================================================================
+   SHAKE ANIMATION
+   ========================================================================== */
+
 @keyframes shake {
-  0%, 100% { transform: translateX(0); }
-  10%, 30%, 50%, 70%, 90% { transform: translateX(-2px); }
-  20%, 40%, 60%, 80% { transform: translateX(2px); }
+  0%,
+  100% {
+    transform: translateX(0);
+  }
+  10%,
+  30%,
+  50%,
+  70%,
+  90% {
+    transform: translateX(-2px);
+  }
+  20%,
+  40%,
+  60%,
+  80% {
+    transform: translateX(2px);
+  }
 }
 
 .animate-shake {
   animation: shake 0.5s ease-in-out;
 }
 
+/* ==========================================================================
+   UTILITY OVERRIDES - SAFE FOR ALL PAGES
+   ========================================================================== */
+
+/* Keep images block-level to prevent whitespace issues */
+img,
+svg,
+video,
+canvas {
+  display: block;
+}
+
+/* Ensure flex containers don't break */
+.flex {
+  display: flex;
+}
+
+.flex-col {
+  flex-direction: column;
+}
+
+.flex-row {
+  flex-direction: row;
+}
+
+.flex-wrap {
+  flex-wrap: wrap;
+}
+
+.flex-nowrap {
+  flex-wrap: nowrap;
+}
+
+/* ==========================================================================
+   RESPONSIVE FIXES FOR ALL PAGES
+   ========================================================================== */
+
+@media (max-width: 640px) {
+  /* Mobile-specific overrides */
+  section.hero-slider .dots-container button {
+    width: 8px !important;
+    height: 8px !important;
+  }
+
+  section.hero-slider .dots-container .active-dot {
+    width: 24px !important;
+    height: 8px !important;
+  }
+
+  section.hero-slider button {
+    padding: 8px !important;
+  }
+
+  section.hero-slider button svg {
+    width: 16px !important;
+    height: 16px !important;
+  }
+}

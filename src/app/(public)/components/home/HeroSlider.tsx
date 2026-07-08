@@ -19,17 +19,42 @@ export default function HeroSlider() {
   const [enableTransition, setEnableTransition] = useState(true);
   const [touchStart, setTouchStart] = useState<number | null>(null);
   const [isAutoPlaying, setIsAutoPlaying] = useState(true);
+  const [imagesLoaded, setImagesLoaded] = useState(false);
+
+  // Preload images to prevent empty space
+  useEffect(() => {
+    const loadImages = async () => {
+      const imagePromises = banners.map((src) => {
+        return new Promise((resolve, reject) => {
+          const img = new window.Image();
+          img.src = src;
+          img.onload = resolve;
+          img.onerror = reject;
+        });
+      });
+
+      try {
+        await Promise.all(imagePromises);
+        setImagesLoaded(true);
+      } catch (error) {
+        console.error("Error loading images:", error);
+        setImagesLoaded(true); // Still show slider even if images fail
+      }
+    };
+
+    loadImages();
+  }, []);
 
   // Auto Slide
   useEffect(() => {
-    if (!isAutoPlaying) return;
+    if (!isAutoPlaying || !imagesLoaded) return;
 
     const interval = setInterval(() => {
       setCurrentSlide((prev) => prev + 1);
     }, 3000);
 
     return () => clearInterval(interval);
-  }, [isAutoPlaying]);
+  }, [isAutoPlaying, imagesLoaded]);
 
   // Infinite Loop Reset
   useEffect(() => {
@@ -98,9 +123,22 @@ export default function HeroSlider() {
     setTouchStart(null);
   };
 
+  // Don't render until images are loaded to prevent empty space
+  if (!imagesLoaded) {
+    return (
+      <section className="hero-slider w-full overflow-hidden bg-white">
+        <div className="relative w-full" style={{ paddingBottom: "31.25%" }}>
+          <div className="absolute inset-0 flex items-center justify-center bg-gray-100">
+            <div className="w-12 h-12 border-4 border-blue-600 border-t-transparent rounded-full animate-spin"></div>
+          </div>
+        </div>
+      </section>
+    );
+  }
+
   return (
     <section
-      className="relative w-full overflow-hidden bg-white m-0 p-0 leading-[0]"
+      className="hero-slider w-full overflow-hidden bg-white m-0 p-0 leading-[0]"
       onMouseEnter={() => setIsAutoPlaying(false)}
       onMouseLeave={() => setIsAutoPlaying(true)}
     >
@@ -134,46 +172,55 @@ export default function HeroSlider() {
                   priority={index === 0}
                   className="block w-full h-auto m-0 p-0 leading-[0]"
                   sizes="100vw"
-                  style={{ display: 'block' }}
+                  style={{ 
+                    display: 'block',
+                    width: '100%',
+                    height: 'auto',
+                    margin: 0,
+                    padding: 0,
+                  }}
                 />
               </div>
             </div>
           ))}
         </div>
 
-        {/* Previous */}
+        {/* Previous Button - Smaller */}
         <button
           onClick={prevSlide}
-          className="absolute left-3 top-1/2 -translate-y-1/2 z-20 rounded-full bg-white/90 p-3 shadow-lg backdrop-blur transition hover:scale-110 border border-gray-200"
+          className="absolute left-3 top-1/2 -translate-y-1/2 z-20 rounded-full bg-white/90 p-2 shadow-lg backdrop-blur transition hover:scale-110 border border-gray-200"
+          aria-label="Previous slide"
         >
-          <ChevronLeft className="w-6 h-6 text-gray-700" />
+          <ChevronLeft className="w-5 h-5 text-gray-700" />
         </button>
 
-        {/* Next */}
+        {/* Next Button - Smaller */}
         <button
           onClick={nextSlide}
-          className="absolute right-3 top-1/2 -translate-y-1/2 z-20 rounded-full bg-white/90 p-3 shadow-lg backdrop-blur transition hover:scale-110 border border-gray-200"
+          className="absolute right-3 top-1/2 -translate-y-1/2 z-20 rounded-full bg-white/90 p-2 shadow-lg backdrop-blur transition hover:scale-110 border border-gray-200"
+          aria-label="Next slide"
         >
-          <ChevronRight className="w-6 h-6 text-gray-700" />
+          <ChevronRight className="w-5 h-5 text-gray-700" />
         </button>
 
         {/* Dots */}
-        <div className="absolute bottom-5 left-1/2 -translate-x-1/2 flex gap-2 z-20">
+        <div className="absolute bottom-4 left-1/2 -translate-x-1/2 flex gap-2 z-20">
           {banners.map((_, index) => (
             <button
               key={index}
               onClick={() => goToSlide(index)}
               className={`transition-all duration-300 rounded-full ${
                 currentSlide % banners.length === index
-                  ? "w-10 h-2 bg-[#016ab7]"
-                  : "w-2 h-2 bg-[#016ab7]/40 hover:bg-[#016ab7]/60"
+                  ? "w-8 h-1.5 bg-[#016ab7]"
+                  : "w-1.5 h-1.5 bg-[#016ab7]/40 hover:bg-[#016ab7]/60"
               }`}
+              aria-label={`Go to slide ${index + 1}`}
             />
           ))}
         </div>
 
-        {/* Counter */}
-        <div className="absolute bottom-5 right-5 rounded-full bg-black/50 px-3 py-1 text-xs text-white backdrop-blur">
+        {/* Counter - Smaller */}
+        <div className="absolute bottom-4 right-4 rounded-full bg-black/50 px-2 py-0.5 text-xs text-white backdrop-blur">
           {(currentSlide % banners.length) + 1} / {banners.length}
         </div>
       </div>
