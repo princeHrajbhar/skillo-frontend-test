@@ -2,7 +2,7 @@
 'use client';
 
 import { useRouter } from 'next/navigation';
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useMemo } from 'react';
 import { 
   Plus, 
   Search, 
@@ -20,14 +20,15 @@ import {
   RefreshCw,
   AlertCircle,
   CheckCircle,
-  FileText
+  FileText,
+  X
 } from 'lucide-react';
 import { useBlog } from '../../../../features/blog/hooks/useBlog';
 
 export default function BlogPage() {
   const router = useRouter();
   const { 
-    blogs, 
+    blogs: allBlogs, 
     pagination, 
     isLoading, 
     error, 
@@ -47,8 +48,9 @@ export default function BlogPage() {
   const [deletingId, setDeletingId] = useState<string | null>(null);
   const [currentPage, setCurrentPage] = useState(1);
   const [isInitialLoad, setIsInitialLoad] = useState(true);
+  const [filteredBlogs, setFilteredBlogs] = useState(allBlogs);
 
-  // Build query params
+  // Build query params for API (without search - we'll handle search client-side)
   const buildParams = (page: number) => {
     const params: any = {
       page,
@@ -57,7 +59,6 @@ export default function BlogPage() {
       sortOrder,
     };
     
-    if (searchQuery) params.search = searchQuery;
     if (selectedStatus !== 'all') params.status = selectedStatus;
     if (selectedCategory !== 'all') params.category = selectedCategory;
     
@@ -73,29 +74,40 @@ export default function BlogPage() {
   // Refetch when filters change
   useEffect(() => {
     refetchBlogs();
-    // Mark initial load as complete after first fetch
     if (isInitialLoad) {
       setIsInitialLoad(false);
     }
   }, [currentPage, sortBy, sortOrder, selectedStatus, selectedCategory, refetchBlogs]);
 
-  // Debounced search
+  // Filter blogs client-side based on search query
   useEffect(() => {
-    const timer = setTimeout(() => {
-      setCurrentPage(1);
-      refetchBlogs();
-    }, 500);
+    if (!allBlogs || allBlogs.length === 0) {
+      setFilteredBlogs([]);
+      return;
+    }
 
-    return () => clearTimeout(timer);
-  }, [searchQuery]);
+    let filtered = [...allBlogs];
+
+    // Client-side search filter - case insensitive title match
+    if (searchQuery && searchQuery.trim()) {
+      const searchLower = searchQuery.trim().toLowerCase();
+      filtered = filtered.filter(blog => 
+        blog.title.toLowerCase().includes(searchLower)
+      );
+    }
+
+    setFilteredBlogs(filtered);
+  }, [allBlogs, searchQuery]);
 
   // Fetch stats on mount
   useEffect(() => {
     refetchStats();
   }, []);
 
-  // Get unique categories from posts
-  const categories = ['all', ...new Set(blogs.map(post => post.category))];
+  // Get unique categories from filtered posts
+  const categories = useMemo(() => {
+    return ['all', ...new Set(allBlogs.map(post => post.category))];
+  }, [allBlogs]);
 
   const getStatusColor = (status: string) => {
     return status === 'published' 
@@ -163,8 +175,59 @@ export default function BlogPage() {
     setCurrentPage(page);
   };
 
+  // Handle search input change - updates searchQuery state which triggers client-side filtering
+  const handleSearchChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const value = e.target.value;
+    setSearchQuery(value);
+    // Reset to first page when searching
+    if (value.trim()) {
+      setCurrentPage(1);
+    }
+  };
+
+  // Clear search
+  const clearSearch = () => {
+    setSearchQuery('');
+    setCurrentPage(1);
+  };
+
+  const clearAllFilters = () => {
+    setSelectedStatus('all');
+    setSelectedCategory('all');
+    setSearchQuery('');
+    setSortBy('createdAt');
+    setSortOrder('desc');
+    setCurrentPage(1);
+  };
+
+  // Apply filter changes immediately (for dropdowns)
+  const handleFilterChange = (type: 'status' | 'category', value: string) => {
+    if (type === 'status') {
+      setSelectedStatus(value);
+    } else {
+      setSelectedCategory(value);
+    }
+    setCurrentPage(1);
+    // Refetch immediately for filter changes
+    setTimeout(() => refetchBlogs(), 0);
+  };
+
   // Determine if we should show loading state
   const showLoading = isLoading || isFetching || isInitialLoad;
+
+  // Get active filter count
+  const getActiveFilterCount = () => {
+    let count = 0;
+    if (selectedStatus !== 'all') count++;
+    if (selectedCategory !== 'all') count++;
+    if (searchQuery && searchQuery.trim()) count++;
+    return count;
+  };
+
+  const activeFilterCount = getActiveFilterCount();
+
+  // Use filtered blogs for display
+  const displayBlogs = searchQuery.trim() ? filteredBlogs : allBlogs;
 
   return (
     <div className="space-y-6">
@@ -173,7 +236,18 @@ export default function BlogPage() {
         <div>
           <h1 className="text-2xl font-bold text-gray-900">Blog Posts</h1>
           <p className="text-sm text-gray-500 mt-1">
-            {showLoading ? 'Loading...' : `${pagination?.total || 0} blog posts found`}
+            {showLoading ? 'Loading...' : (
+              <>
+                {searchQuery.trim() ? (
+                  <span>
+                    Found <span className="font-medium text-gray-700">{displayBlogs.length}</span> matching posts
+                    {` (from ${pagination?.total || 0} total)`}
+                  </span>
+                ) : (
+                  <span>{pagination?.total || 0} blog posts found</span>
+                )}
+              </>
+            )}
             {stats && !showLoading && (
               <span className="ml-4 text-xs">
                 <span className="text-emerald-600">{stats.published} published</span>
@@ -199,11 +273,20 @@ export default function BlogPage() {
             <Search className="w-4 h-4 text-gray-400 absolute left-3 top-1/2 -translate-y-1/2" />
             <input
               type="text"
-              placeholder="Search by title, category, or tags..."
+              placeholder="Search by title..."
               value={searchQuery}
-              onChange={(e) => setSearchQuery(e.target.value)}
-              className="w-full pl-9 pr-4 py-2.5 border border-gray-300 rounded-xl focus:outline-none focus:ring-2 focus:ring-teal-500 focus:border-transparent text-sm"
+              onChange={handleSearchChange}
+              className="w-full pl-9 pr-12 py-2.5 border border-gray-300 rounded-xl focus:outline-none focus:ring-2 focus:ring-teal-500 focus:border-transparent text-sm"
             />
+            {searchQuery && (
+              <button
+                type="button"
+                onClick={clearSearch}
+                className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-400 hover:text-gray-600"
+              >
+                <X className="w-4 h-4" />
+              </button>
+            )}
           </div>
           
           <div className="flex flex-wrap gap-2">
@@ -217,16 +300,59 @@ export default function BlogPage() {
             >
               <Filter className="w-4 h-4" />
               Filters
+              {activeFilterCount > 0 && (
+                <span className="ml-1 bg-teal-600 text-white text-xs w-5 h-5 rounded-full flex items-center justify-center">
+                  {activeFilterCount}
+                </span>
+              )}
               {showFilters ? <ChevronUp className="w-3.5 h-3.5" /> : <ChevronDown className="w-3.5 h-3.5" />}
             </button>
             <button
               onClick={handleRefresh}
               className="p-2.5 border border-gray-300 rounded-xl hover:bg-gray-50 transition-colors text-gray-500"
+              disabled={showLoading}
             >
               <RefreshCw className={`w-4 h-4 ${showLoading ? 'animate-spin' : ''}`} />
             </button>
           </div>
         </div>
+
+        {/* Active Filters */}
+        {activeFilterCount > 0 && (
+          <div className="flex flex-wrap items-center gap-2 pt-2">
+            <span className="text-xs text-gray-500 font-medium">Active filters:</span>
+            {searchQuery && (
+              <span className="inline-flex items-center gap-1 px-2.5 py-1 bg-teal-50 text-teal-700 text-xs rounded-full">
+                Search: {searchQuery}
+                <button onClick={clearSearch}>
+                  <X className="w-3 h-3 hover:text-teal-900" />
+                </button>
+              </span>
+            )}
+            {selectedStatus !== 'all' && (
+              <span className="inline-flex items-center gap-1 px-2.5 py-1 bg-teal-50 text-teal-700 text-xs rounded-full">
+                Status: {selectedStatus}
+                <button onClick={() => handleFilterChange('status', 'all')}>
+                  <X className="w-3 h-3 hover:text-teal-900" />
+                </button>
+              </span>
+            )}
+            {selectedCategory !== 'all' && (
+              <span className="inline-flex items-center gap-1 px-2.5 py-1 bg-teal-50 text-teal-700 text-xs rounded-full">
+                Category: {selectedCategory}
+                <button onClick={() => handleFilterChange('category', 'all')}>
+                  <X className="w-3 h-3 hover:text-teal-900" />
+                </button>
+              </span>
+            )}
+            <button
+              onClick={clearAllFilters}
+              className="text-xs text-gray-500 hover:text-red-600 font-medium ml-1"
+            >
+              Clear all
+            </button>
+          </div>
+        )}
 
         {/* Advanced Filters */}
         {showFilters && (
@@ -236,7 +362,7 @@ export default function BlogPage() {
                 <label className="block text-xs font-medium text-gray-500 mb-1.5">Status</label>
                 <select
                   value={selectedStatus}
-                  onChange={(e) => setSelectedStatus(e.target.value)}
+                  onChange={(e) => handleFilterChange('status', e.target.value)}
                   className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-teal-500 text-sm"
                 >
                   <option value="all">All Status</option>
@@ -248,7 +374,7 @@ export default function BlogPage() {
                 <label className="block text-xs font-medium text-gray-500 mb-1.5">Category</label>
                 <select
                   value={selectedCategory}
-                  onChange={(e) => setSelectedCategory(e.target.value)}
+                  onChange={(e) => handleFilterChange('category', e.target.value)}
                   className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-teal-500 text-sm"
                 >
                   {categories.map(cat => (
@@ -258,16 +384,37 @@ export default function BlogPage() {
                   ))}
                 </select>
               </div>
-              <div className="flex items-end gap-2">
+              <div>
+                <label className="block text-xs font-medium text-gray-500 mb-1.5">Sort By</label>
+                <div className="flex gap-2">
+                  <select
+                    value={sortBy}
+                    onChange={(e) => {
+                      setSortBy(e.target.value);
+                      setCurrentPage(1);
+                      setTimeout(() => refetchBlogs(), 0);
+                    }}
+                    className="flex-1 px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-teal-500 text-sm"
+                  >
+                    <option value="createdAt">Created Date</option>
+                    <option value="postingDate">Posting Date</option>
+                    <option value="title">Title</option>
+                  </select>
+                  <button
+                    onClick={() => {
+                      setSortOrder(sortOrder === 'desc' ? 'asc' : 'desc');
+                      setCurrentPage(1);
+                      setTimeout(() => refetchBlogs(), 0);
+                    }}
+                    className="px-3 py-2 border border-gray-300 rounded-lg hover:bg-gray-50 transition-colors"
+                  >
+                    {sortOrder === 'desc' ? '↓' : '↑'}
+                  </button>
+                </div>
+              </div>
+              <div className="flex items-end">
                 <button 
-                  onClick={() => {
-                    setSelectedStatus('all');
-                    setSelectedCategory('all');
-                    setSearchQuery('');
-                    setSortBy('createdAt');
-                    setSortOrder('desc');
-                    setCurrentPage(1);
-                  }}
+                  onClick={clearAllFilters}
                   className="px-4 py-2 text-sm text-teal-600 hover:text-teal-700 font-medium bg-teal-50 rounded-lg hover:bg-teal-100 transition-colors"
                 >
                   Clear All Filters
@@ -280,7 +427,7 @@ export default function BlogPage() {
 
       {/* Blog Table */}
       <div className="bg-white rounded-xl border border-gray-200 overflow-hidden">
-        {showLoading && blogs.length === 0 ? (
+        {showLoading && allBlogs.length === 0 ? (
           <div className="flex items-center justify-center py-20">
             <Loader2 className="w-8 h-8 animate-spin text-teal-600" />
           </div>
@@ -295,19 +442,37 @@ export default function BlogPage() {
               Try Again
             </button>
           </div>
-        ) : blogs.length === 0 ? (
+        ) : displayBlogs.length === 0 ? (
           <div className="flex flex-col items-center justify-center py-20">
             <div className="p-4 bg-gray-100 rounded-full mb-4">
               <FileText className="w-12 h-12 text-gray-400" />
             </div>
             <h3 className="text-lg font-semibold text-gray-900">No blog posts found</h3>
-            <p className="text-gray-500 mt-1">Create your first blog post to get started</p>
-            <button
-              onClick={() => router.push('/dashboard/blog/add')}
-              className="mt-4 px-4 py-2 bg-teal-600 text-white rounded-lg hover:bg-teal-700 transition-colors"
-            >
-              Create New Post
-            </button>
+            <p className="text-gray-500 mt-1">
+              {searchQuery.trim() ? (
+                `No posts found matching "${searchQuery}"`
+              ) : selectedStatus !== 'all' || selectedCategory !== 'all' ? (
+                'Try adjusting your filters to find what you\'re looking for'
+              ) : (
+                'Create your first blog post to get started'
+              )}
+            </p>
+            {(searchQuery.trim() || selectedStatus !== 'all' || selectedCategory !== 'all') && (
+              <button
+                onClick={clearAllFilters}
+                className="mt-4 px-4 py-2 text-sm text-teal-600 hover:text-teal-700 font-medium"
+              >
+                Clear all filters
+              </button>
+            )}
+            {!searchQuery && selectedStatus === 'all' && selectedCategory === 'all' && (
+              <button
+                onClick={() => router.push('/dashboard/blog/add')}
+                className="mt-4 px-4 py-2 bg-teal-600 text-white rounded-lg hover:bg-teal-700 transition-colors"
+              >
+                Create New Post
+              </button>
+            )}
           </div>
         ) : (
           <>
@@ -321,9 +486,6 @@ export default function BlogPage() {
                     <th className="text-left text-xs font-semibold text-gray-500 uppercase tracking-wider px-4 py-3.5 hidden md:table-cell">
                       Category
                     </th>
-                    <th className="text-left text-xs font-semibold text-gray-500 uppercase tracking-wider px-4 py-3.5 hidden lg:table-cell">
-                      Author
-                    </th>
                     <th className="text-left text-xs font-semibold text-gray-500 uppercase tracking-wider px-4 py-3.5 hidden sm:table-cell">
                       Status
                     </th>
@@ -336,7 +498,7 @@ export default function BlogPage() {
                   </tr>
                 </thead>
                 <tbody className="divide-y divide-gray-100">
-                  {blogs.map((post) => (
+                  {displayBlogs.map((post) => (
                     <tr key={post._id} className="hover:bg-gray-50/50 transition-colors group">
                       <td className="px-4 py-3.5">
                         <div className="min-w-[200px]">
@@ -357,6 +519,11 @@ export default function BlogPage() {
                             <div className="min-w-0">
                               <p className="text-sm font-semibold text-gray-900 group-hover:text-teal-600 transition-colors line-clamp-1">
                                 {post.title}
+                                {searchQuery.trim() && (
+                                  <span className="ml-2 text-xs font-normal text-teal-600">
+                                    (match)
+                                  </span>
+                                )}
                               </p>
                               <div className="flex flex-wrap gap-1 mt-1">
                                 {post.keyword?.slice(0, 2).map((tag, i) => (
@@ -377,16 +544,6 @@ export default function BlogPage() {
                         <span className="text-sm text-gray-600 bg-gray-50 px-2.5 py-1 rounded-lg">
                           {post.category}
                         </span>
-                      </td>
-                      <td className="px-4 py-3.5 hidden lg:table-cell">
-                        <div className="flex items-center gap-2.5">
-                          <div className="w-8 h-8 bg-gradient-to-br from-teal-100 to-cyan-100 rounded-full flex items-center justify-center">
-                            <User className="w-4 h-4 text-teal-600" />
-                          </div>
-                          <span className="text-sm font-medium text-gray-700 truncate max-w-[120px]">
-                            {post.postedBy}
-                          </span>
-                        </div>
                       </td>
                       <td className="px-4 py-3.5 hidden sm:table-cell">
                         <div className="flex items-center gap-2">
@@ -453,8 +610,8 @@ export default function BlogPage() {
               </table>
             </div>
 
-            {/* Pagination */}
-            {pagination && pagination.totalPages > 1 && (
+            {/* Pagination - Only show if not searching */}
+            {!searchQuery.trim() && pagination && pagination.totalPages > 1 && (
               <div className="px-4 py-3.5 border-t border-gray-200 flex flex-col sm:flex-row items-center justify-between gap-3 bg-gray-50/50">
                 <p className="text-sm text-gray-500">
                   Showing <span className="font-medium text-gray-700">{(pagination.page - 1) * pagination.limit + 1}</span> 
@@ -466,7 +623,7 @@ export default function BlogPage() {
                   <span className="font-medium text-gray-700">{pagination.total}</span>
                   {' posts'}
                 </p>
-                <div className="flex gap-1.5">
+                <div className="flex gap-1.5 flex-wrap justify-center">
                   <button
                     onClick={() => handlePageChange(pagination.page - 1)}
                     disabled={!pagination.hasPrevPage}
@@ -474,25 +631,57 @@ export default function BlogPage() {
                   >
                     Previous
                   </button>
-                  {[...Array(Math.min(pagination.totalPages, 5))].map((_, i) => {
-                    const pageNum = i + 1;
-                    return (
-                      <button
-                        key={pageNum}
-                        onClick={() => handlePageChange(pageNum)}
-                        className={`px-3.5 py-1.5 text-sm rounded-lg transition-colors font-medium ${
-                          pagination.page === pageNum
-                            ? 'bg-teal-600 text-white shadow-sm shadow-teal-500/25'
-                            : 'border border-gray-300 hover:bg-white text-gray-600'
-                        }`}
-                      >
-                        {pageNum}
-                      </button>
-                    );
-                  })}
-                  {pagination.totalPages > 5 && (
-                    <span className="px-2 py-1.5 text-sm text-gray-400">...</span>
-                  )}
+                  
+                  {/* Page numbers */}
+                  {(() => {
+                    const totalPages = pagination.totalPages;
+                    const currentPageNum = pagination.page;
+                    const pageNumbers = [];
+                    
+                    pageNumbers.push(1);
+                    
+                    if (currentPageNum > 3) {
+                      pageNumbers.push('...');
+                    }
+                    
+                    for (let i = Math.max(2, currentPageNum - 1); i <= Math.min(totalPages - 1, currentPageNum + 1); i++) {
+                      if (i === 1 || i === totalPages) continue;
+                      pageNumbers.push(i);
+                    }
+                    
+                    if (currentPageNum < totalPages - 2) {
+                      pageNumbers.push('...');
+                    }
+                    
+                    if (totalPages > 1) {
+                      pageNumbers.push(totalPages);
+                    }
+                    
+                    return pageNumbers.map((page, index) => {
+                      if (page === '...') {
+                        return (
+                          <span key={`ellipsis-${index}`} className="px-3.5 py-1.5 text-sm text-gray-400">
+                            ...
+                          </span>
+                        );
+                      }
+                      const pageNum = page as number;
+                      return (
+                        <button
+                          key={pageNum}
+                          onClick={() => handlePageChange(pageNum)}
+                          className={`px-3.5 py-1.5 text-sm rounded-lg transition-colors font-medium ${
+                            pagination.page === pageNum
+                              ? 'bg-teal-600 text-white shadow-sm shadow-teal-500/25'
+                              : 'border border-gray-300 hover:bg-white text-gray-600'
+                          }`}
+                        >
+                          {pageNum}
+                        </button>
+                      );
+                    });
+                  })()}
+                  
                   <button
                     onClick={() => handlePageChange(pagination.page + 1)}
                     disabled={!pagination.hasNextPage}
@@ -501,6 +690,15 @@ export default function BlogPage() {
                     Next
                   </button>
                 </div>
+              </div>
+            )}
+
+            {/* Show count when searching */}
+            {searchQuery.trim() && (
+              <div className="px-4 py-3 border-t border-gray-200 bg-gray-50/50">
+                <p className="text-sm text-gray-500">
+                  Showing <span className="font-medium text-gray-700">{displayBlogs.length}</span> matching posts
+                </p>
               </div>
             )}
           </>
