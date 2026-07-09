@@ -63,7 +63,6 @@ export const authApi = baseApi.injectEndpoints({
         credentials: 'include', // ✅ Important: Send cookies
       }),
       transformResponse: (response: any) => {
-        console.log('🔄 Refresh token response:', response);
         if (response?.data?.accessToken && typeof window !== 'undefined') {
           localStorage.setItem('accessToken', response.data.accessToken);
           document.cookie = `accessToken=${response.data.accessToken}; path=/; max-age=86400; SameSite=Lax`;

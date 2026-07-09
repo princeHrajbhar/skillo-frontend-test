@@ -44,7 +44,6 @@ const baseQuery = fetchBaseQuery({
 // Track refresh state globally
 let isRefreshing = false;
 let refreshSubscribers: ((token: string) => void)[] = [];
-let refreshPromise: Promise<any> | null = null;
 
 // Subscribe to token refresh
 const subscribeTokenRefresh = (cb: (token: string) => void) => {
@@ -57,41 +56,7 @@ const onRefreshed = (token: string) => {
   refreshSubscribers = [];
 };
 
-// Helper to perform refresh
-const performRefresh = async (): Promise<string | null> => {
-  try {
-    const refreshBaseQuery = fetchBaseQuery({
-      baseUrl: API_BASE_URL,
-      credentials: 'include',
-    });
-
-    const refreshResult = await refreshBaseQuery(
-      {
-        url: '/auth/refresh',
-        method: 'POST',
-      },
-      {} as any,
-      {} as any
-    );
-
-    if (refreshResult.data) {
-      const responseData = refreshResult.data as any;
-      const newToken = responseData?.data?.accessToken;
-      
-      if (newToken && typeof window !== 'undefined') {
-        localStorage.setItem('accessToken', newToken);
-        document.cookie = `accessToken=${newToken}; path=/; max-age=86400; SameSite=Lax`;
-        return newToken;
-      }
-    }
-    return null;
-  } catch (error) {
-    console.error('❌ Refresh error:', error);
-    return null;
-  }
-};
-
-// Helper to create a new fetch query with token
+// Helper to create a new fetch query with token and return a proper Promise
 const createAuthenticatedQuery = async (token: string, args: string | FetchArgs): Promise<any> => {
   const authenticatedBaseQuery = fetchBaseQuery({
     baseUrl: API_BASE_URL,
@@ -104,6 +69,7 @@ const createAuthenticatedQuery = async (token: string, args: string | FetchArgs)
     },
   });
   
+  // Await the result to ensure we get a proper Promise
   return await authenticatedBaseQuery(args, {} as any, {} as any);
 };
 
@@ -113,25 +79,19 @@ const baseQueryWithReauth: BaseQueryFn<
   unknown,
   FetchBaseQueryError
 > = async (args, api, extraOptions) => {
-  // Check if we're on the client side
-  if (typeof window === 'undefined') {
-    return await baseQuery(args, api, extraOptions);
-  }
-
-  // Get token before making request
-  let token = getToken();
-  
-  // Don't attempt refresh for auth endpoints
+  // Skip refresh for login and refresh endpoints
   const isAuthEndpoint = typeof args === 'object' && 
     (args.url?.includes('/auth/login') || 
      args.url?.includes('/auth/refresh') ||
      args.url?.includes('/auth/logout'));
   
+  // Don't attempt refresh for auth endpoints
   if (isAuthEndpoint) {
     return await baseQuery(args, api, extraOptions);
   }
 
-  // If no token, return 401 immediately
+  // Check if we have a token before making the request
+  const token = getToken();
   if (!token) {
     console.log('⏭️ No token found, skipping request');
     return {
@@ -156,20 +116,8 @@ const baseQueryWithReauth: BaseQueryFn<
         subscribeTokenRefresh(async (newToken) => {
           console.log('🔄 Retrying with new token after refresh');
           try {
-            // Update the token in the request
-            const argsWithToken = args;
-            if (typeof argsWithToken === 'object' && argsWithToken !== null) {
-              // We need to reconstruct the request with new token
-              const retryResult = await createAuthenticatedQuery(newToken, argsWithToken);
-              resolve(retryResult);
-            } else {
-              resolve({
-                error: {
-                  status: 401,
-                  data: { message: 'Retry failed - invalid args' }
-                } as FetchBaseQueryError
-              });
-            }
+            const retryResult = await createAuthenticatedQuery(newToken, args);
+            resolve(retryResult);
           } catch (err) {
             resolve({
               error: {
@@ -186,50 +134,90 @@ const baseQueryWithReauth: BaseQueryFn<
     isRefreshing = true;
 
     try {
-      // Perform refresh
-      const newToken = await performRefresh();
-      
-      if (newToken) {
+      // Try to refresh the token
+      const refreshBaseQuery = fetchBaseQuery({
+        baseUrl: API_BASE_URL,
+        credentials: 'include',
+      });
+
+      const refreshResult = await refreshBaseQuery(
+        {
+          url: '/auth/refresh',
+          method: 'POST',
+        },
+        api,
+        extraOptions
+      );
+
+      if (refreshResult.data) {
         console.log('✅ Token refreshed successfully');
-        token = newToken;
-        onRefreshed(newToken);
         
-        // Retry the original request with the new token
-        const retryResult = await createAuthenticatedQuery(newToken, args);
-        return retryResult;
-      } else {
-        console.log('❌ Refresh failed - no token received');
-        clearAuthData();
-        // Redirect to login
-        if (typeof window !== 'undefined' && !window.location.pathname.startsWith('/login')) {
-          window.location.href = '/login';
+        const responseData = refreshResult.data as any;
+        const newToken = responseData?.data?.accessToken;
+        
+        if (newToken && typeof window !== 'undefined') {
+          // Store new token
+          localStorage.setItem('accessToken', newToken);
+          document.cookie = `accessToken=${newToken}; path=/; max-age=86400; SameSite=Lax`;
+          
+          // Notify subscribers
+          onRefreshed(newToken);
+          
+          // Retry the original request with the new token
+          result = await createAuthenticatedQuery(newToken, args);
+          console.log('🔄 Retry result:', result);
+        } else {
+          console.log('❌ No new token in refresh response');
+          clearAuthData();
+          isRefreshing = false;
+          redirectToLogin();
+          return {
+            error: {
+              status: 401,
+              data: { message: 'No new token received' }
+            } as FetchBaseQueryError
+          };
         }
+      } else {
+        console.log('❌ Refresh failed');
+        clearAuthData();
+        isRefreshing = false;
+        redirectToLogin();
         return {
           error: {
             status: 401,
-            data: { message: 'Session expired - please login again' }
+            data: { message: 'Refresh failed' }
           } as FetchBaseQueryError
         };
       }
     } catch (error) {
       console.error('❌ Refresh error:', error);
       clearAuthData();
-      if (typeof window !== 'undefined' && !window.location.pathname.startsWith('/login')) {
-        window.location.href = '/login';
-      }
+      isRefreshing = false;
+      redirectToLogin();
       return {
         error: {
           status: 401,
-          data: { message: 'Authentication failed' }
+          data: { message: 'Refresh error' }
         } as FetchBaseQueryError
       };
     } finally {
       isRefreshing = false;
-      refreshPromise = null;
     }
   }
 
   return result;
+};
+
+// Helper to redirect to login
+const redirectToLogin = () => {
+  if (typeof window !== 'undefined') {
+    const pathname = window.location.pathname;
+    if (!pathname.startsWith('/login') && !pathname.startsWith('/register')) {
+      console.log('🔀 Redirecting to login page');
+      window.location.href = '/login';
+    }
+  }
 };
 
 // Create base API
