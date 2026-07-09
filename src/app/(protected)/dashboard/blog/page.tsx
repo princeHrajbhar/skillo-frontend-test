@@ -229,6 +229,12 @@ export default function BlogPage() {
   // Use filtered blogs for display
   const displayBlogs = searchQuery.trim() ? filteredBlogs : allBlogs;
 
+  // Helper function to check if image URL is valid
+  const isValidImageUrl = (url: string | undefined) => {
+    if (!url) return false;
+    return url.startsWith('http://') || url.startsWith('https://');
+  };
+
   return (
     <div className="space-y-6">
       {/* Header */}
@@ -498,114 +504,133 @@ export default function BlogPage() {
                   </tr>
                 </thead>
                 <tbody className="divide-y divide-gray-100">
-                  {displayBlogs.map((post) => (
-                    <tr key={post._id} className="hover:bg-gray-50/50 transition-colors group">
-                      <td className="px-4 py-3.5">
-                        <div className="min-w-[200px]">
-                          <div className="flex items-center gap-3">
-                            {post.banner?.url ? (
-                              <div className="w-12 h-12 rounded-lg overflow-hidden flex-shrink-0 bg-gray-100">
-                                <img 
-                                  src={post.banner.url} 
-                                  alt={post.title}
-                                  className="w-full h-full object-cover"
-                                />
-                              </div>
-                            ) : (
-                              <div className="w-12 h-12 rounded-lg bg-gradient-to-br from-teal-100 to-cyan-100 flex items-center justify-center flex-shrink-0">
-                                <FileText className="w-5 h-5 text-teal-600" />
-                              </div>
-                            )}
-                            <div className="min-w-0">
-                              <p className="text-sm font-semibold text-gray-900 group-hover:text-teal-600 transition-colors line-clamp-1">
-                                {post.title}
-                                {searchQuery.trim() && (
-                                  <span className="ml-2 text-xs font-normal text-teal-600">
-                                    (match)
-                                  </span>
-                                )}
-                              </p>
-                              <div className="flex flex-wrap gap-1 mt-1">
-                                {post.keyword?.slice(0, 2).map((tag, i) => (
-                                  <span key={i} className="inline-flex items-center gap-0.5 text-xs bg-gray-100 text-gray-600 px-2 py-0.5 rounded">
-                                    <Tag className="w-2.5 h-2.5" />
-                                    {tag}
-                                  </span>
-                                ))}
-                                {post.keyword && post.keyword.length > 2 && (
-                                  <span className="text-xs text-gray-400">+{post.keyword.length - 2}</span>
-                                )}
+                  {displayBlogs.map((post) => {
+                    // Check if image URL is valid
+                    const imageUrl = post.banner?.url;
+                    const hasValidImage = imageUrl && isValidImageUrl(imageUrl);
+
+                    return (
+                      <tr key={post._id} className="hover:bg-gray-50/50 transition-colors group">
+                        <td className="px-4 py-3.5">
+                          <div className="min-w-[200px]">
+                            <div className="flex items-center gap-3">
+                              {hasValidImage ? (
+                                <div className="relative w-12 h-12 rounded-lg overflow-hidden flex-shrink-0 bg-gray-100">
+                                  <img 
+                                    src={imageUrl} 
+                                    alt={post.title}
+                                    className="w-full h-full object-cover"
+                                    onError={(e) => {
+                                      // If image fails to load, show icon instead
+                                      const target = e.target as HTMLImageElement;
+                                      target.style.display = 'none';
+                                      // Show the fallback icon
+                                      const parent = target.parentElement;
+                                      if (parent) {
+                                        const iconDiv = document.createElement('div');
+                                        iconDiv.className = 'w-full h-full flex items-center justify-center bg-gradient-to-br from-teal-100 to-cyan-100';
+                                        iconDiv.innerHTML = '<svg class="w-5 h-5 text-teal-600" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 20H5a2 2 0 01-2-2V6a2 2 0 012-2h10a2 2 0 012 2v1m2 13a2 2 0 01-2-2V7m2 13a2 2 0 002-2V9a2 2 0 00-2-2h-2m-4-3H9M7 16h6M7 8h6v4H7V8z"/></svg>';
+                                        parent.appendChild(iconDiv);
+                                      }
+                                    }}
+                                  />
+                                </div>
+                              ) : (
+                                <div className="w-12 h-12 rounded-lg bg-gradient-to-br from-teal-100 to-cyan-100 flex items-center justify-center flex-shrink-0">
+                                  <FileText className="w-5 h-5 text-teal-600" />
+                                </div>
+                              )}
+                              <div className="min-w-0">
+                                <p className="text-sm font-semibold text-gray-900 group-hover:text-teal-600 transition-colors line-clamp-1">
+                                  {post.title}
+                                  {searchQuery.trim() && (
+                                    <span className="ml-2 text-xs font-normal text-teal-600">
+                                      (match)
+                                    </span>
+                                  )}
+                                </p>
+                                <div className="flex flex-wrap gap-1 mt-1">
+                                  {post.keyword?.slice(0, 2).map((tag, i) => (
+                                    <span key={i} className="inline-flex items-center gap-0.5 text-xs bg-gray-100 text-gray-600 px-2 py-0.5 rounded">
+                                      <Tag className="w-2.5 h-2.5" />
+                                      {tag}
+                                    </span>
+                                  ))}
+                                  {post.keyword && post.keyword.length > 2 && (
+                                    <span className="text-xs text-gray-400">+{post.keyword.length - 2}</span>
+                                  )}
+                                </div>
                               </div>
                             </div>
                           </div>
-                        </div>
-                      </td>
-                      <td className="px-4 py-3.5 hidden md:table-cell">
-                        <span className="text-sm text-gray-600 bg-gray-50 px-2.5 py-1 rounded-lg">
-                          {post.category}
-                        </span>
-                      </td>
-                      <td className="px-4 py-3.5 hidden sm:table-cell">
-                        <div className="flex items-center gap-2">
-                          <span className={`inline-flex items-center gap-1.5 text-xs px-2.5 py-1.5 rounded-full ${getStatusColor(post.status)}`}>
-                            {getStatusIcon(post.status)}
-                            {post.status.charAt(0).toUpperCase() + post.status.slice(1)}
+                        </td>
+                        <td className="px-4 py-3.5 hidden md:table-cell">
+                          <span className="text-sm text-gray-600 bg-gray-50 px-2.5 py-1 rounded-lg">
+                            {post.category}
                           </span>
-                          <button
-                            onClick={() => handleStatusUpdate(
-                              post._id, 
-                              post.status === 'published' ? 'draft' : 'published'
-                            )}
-                            className="text-xs text-gray-400 hover:text-teal-600 transition-colors"
-                          >
-                            {post.status === 'published' ? 'Unpublish' : 'Publish'}
-                          </button>
-                        </div>
-                      </td>
-                      <td className="px-4 py-3.5 hidden xl:table-cell">
-                        <div className="flex items-center gap-1.5 text-sm text-gray-500">
-                          <Calendar className="w-3.5 h-3.5" />
-                          {formatDate(post.createdAt)}
-                        </div>
-                      </td>
-                      <td className="px-4 py-3.5">
-                        <div className="flex items-center justify-end gap-1">
-                          <button 
-                            onClick={() => handleViewBlog(post._id)}
-                            className="p-1.5 hover:bg-blue-50 rounded-lg transition-colors text-gray-400 hover:text-blue-600"
-                            title="View Blog"
-                          >
-                            <Eye className="w-4 h-4" />
-                          </button>
-                          <button 
-                            onClick={() => handleEditBlog(post._id)}
-                            className="p-1.5 hover:bg-teal-50 rounded-lg transition-colors text-gray-400 hover:text-teal-600"
-                            title="Edit Blog"
-                          >
-                            <Edit className="w-4 h-4" />
-                          </button>
-                          <button 
-                            onClick={() => handleDelete(post._id)}
-                            disabled={deletingId === post._id}
-                            className="p-1.5 hover:bg-red-50 rounded-lg transition-colors text-gray-400 hover:text-red-600 disabled:opacity-50 disabled:cursor-not-allowed"
-                            title="Delete Blog"
-                          >
-                            {deletingId === post._id ? (
-                              <Loader2 className="w-4 h-4 animate-spin" />
-                            ) : (
-                              <Trash2 className="w-4 h-4" />
-                            )}
-                          </button>
-                          <button 
-                            className="p-1.5 hover:bg-gray-100 rounded-lg transition-colors text-gray-400"
-                            title="More Options"
-                          >
-                            <MoreHorizontal className="w-4 h-4" />
-                          </button>
-                        </div>
-                      </td>
-                    </tr>
-                  ))}
+                        </td>
+                        <td className="px-4 py-3.5 hidden sm:table-cell">
+                          <div className="flex items-center gap-2">
+                            <span className={`inline-flex items-center gap-1.5 text-xs px-2.5 py-1.5 rounded-full ${getStatusColor(post.status)}`}>
+                              {getStatusIcon(post.status)}
+                              {post.status.charAt(0).toUpperCase() + post.status.slice(1)}
+                            </span>
+                            <button
+                              onClick={() => handleStatusUpdate(
+                                post._id, 
+                                post.status === 'published' ? 'draft' : 'published'
+                              )}
+                              className="text-xs text-gray-400 hover:text-teal-600 transition-colors"
+                            >
+                              {post.status === 'published' ? 'Unpublish' : 'Publish'}
+                            </button>
+                          </div>
+                        </td>
+                        <td className="px-4 py-3.5 hidden xl:table-cell">
+                          <div className="flex items-center gap-1.5 text-sm text-gray-500">
+                            <Calendar className="w-3.5 h-3.5" />
+                            {formatDate(post.createdAt)}
+                          </div>
+                        </td>
+                        <td className="px-4 py-3.5">
+                          <div className="flex items-center justify-end gap-1">
+                            <button 
+                              onClick={() => handleViewBlog(post._id)}
+                              className="p-1.5 hover:bg-blue-50 rounded-lg transition-colors text-gray-400 hover:text-blue-600"
+                              title="View Blog"
+                            >
+                              <Eye className="w-4 h-4" />
+                            </button>
+                            <button 
+                              onClick={() => handleEditBlog(post._id)}
+                              className="p-1.5 hover:bg-teal-50 rounded-lg transition-colors text-gray-400 hover:text-teal-600"
+                              title="Edit Blog"
+                            >
+                              <Edit className="w-4 h-4" />
+                            </button>
+                            <button 
+                              onClick={() => handleDelete(post._id)}
+                              disabled={deletingId === post._id}
+                              className="p-1.5 hover:bg-red-50 rounded-lg transition-colors text-gray-400 hover:text-red-600 disabled:opacity-50 disabled:cursor-not-allowed"
+                              title="Delete Blog"
+                            >
+                              {deletingId === post._id ? (
+                                <Loader2 className="w-4 h-4 animate-spin" />
+                              ) : (
+                                <Trash2 className="w-4 h-4" />
+                              )}
+                            </button>
+                            <button 
+                              className="p-1.5 hover:bg-gray-100 rounded-lg transition-colors text-gray-400"
+                              title="More Options"
+                            >
+                              <MoreHorizontal className="w-4 h-4" />
+                            </button>
+                          </div>
+                        </td>
+                      </tr>
+                    );
+                  })}
                 </tbody>
               </table>
             </div>

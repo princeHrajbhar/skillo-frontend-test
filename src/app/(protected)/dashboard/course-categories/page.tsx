@@ -1,3 +1,4 @@
+
 // app/dashboard/course/categories/page.tsx
 'use client';
 

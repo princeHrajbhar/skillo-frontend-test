@@ -4,6 +4,7 @@
 import { useState, useEffect, useRef, useCallback } from 'react';
 import { useParams } from 'next/navigation';
 import Link from 'next/link';
+import Image from 'next/image';
 import { useCourse } from '@/features/course/hooks/useCourse';
 import ContentPreview from '@/components/editor/ContentPreview';
 import {
@@ -211,6 +212,13 @@ export default function CourseDetailPage() {
   const duration = course.duration || 'Self-paced';
   const hasDiscount = course.discountedPrice && course.discountedPrice < course.price;
   const finalPrice = hasDiscount ? course.discountedPrice : course.price;
+
+  // Safe check for valid image URL
+  const imageUrl = course.bannerImage?.url;
+  const isValidImage = imageUrl && 
+    typeof imageUrl === 'string' &&
+    imageUrl.trim() !== '' &&
+    (imageUrl.startsWith('http://') || imageUrl.startsWith('https://'));
 
   return (
     <main className="bg-gray-50 min-h-screen">
@@ -430,16 +438,22 @@ export default function CourseDetailPage() {
               }}
             >
               <div className="bg-white rounded-2xl border border-gray-200 shadow-lg p-5">
-                <div className="relative mb-5 w-full aspect-video overflow-hidden rounded-xl bg-gray-100">
-                  {/* eslint-disable-next-line @next/next/no-img-element */}
-                  <img
-                    src={
-                      course.bannerImage?.url ||
-                      'https://images.unsplash.com/photo-1633356122102-3fe601e05bd2?w=800'
-                    }
-                    alt={course.title}
-                    className="absolute inset-0 h-full w-full object-cover"
-                  />
+                {/* Image Container - 614x306 dimensions (landscape) */}
+                <div className="relative w-full overflow-hidden rounded-xl flex-shrink-0 mb-5" style={{ aspectRatio: '614/306' }}>
+                  {isValidImage ? (
+                    <Image
+                      src={imageUrl}
+                      alt={course.title}
+                      fill
+                      className="object-cover transition-transform duration-300"
+                      sizes="(max-width: 768px) 100vw, 420px"
+                      priority={true}
+                    />
+                  ) : (
+                    <div className="absolute inset-0 flex items-center justify-center bg-[#016ab7]/5">
+                      <BookOpen className="h-16 w-16 text-[#016ab7]/30" />
+                    </div>
+                  )}
                 </div>
                 
                 <div className="flex items-end gap-3 mb-4">

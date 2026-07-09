@@ -104,26 +104,36 @@ const CourseCard: React.FC<{
 }> = ({ course }) => {
   const categorySlug = course.category.toLowerCase().replace(/\s+/g, '-');
 
+  // Safe check for valid image URL with proper null checks
+  const imageUrl = course.bannerImage?.url;
+  const isValidImage = imageUrl && 
+    typeof imageUrl === 'string' &&
+    imageUrl.trim() !== '' &&
+    (imageUrl.startsWith('http://') || imageUrl.startsWith('https://'));
+
   return (
     <Link
       href={`/course/${categorySlug}/${course.slug}`}
       className="block h-full group"
     >
       <div className="bg-white rounded-2xl overflow-hidden shadow-sm hover:shadow-xl transition-all duration-300 h-full border border-gray-100 hover:border-[#016ab7]/30 flex flex-col">
-        {/* Image Container - Fixed aspect ratio with proper object fit */}
-        <div className="relative w-full pt-[56.25%] bg-gray-100 flex-shrink-0 overflow-hidden">
-          {course.bannerImage?.url ? (
+        {/* Image Container - 614x306 dimensions (landscape) */}
+        <div className="relative w-full overflow-hidden flex-shrink-0" style={{ aspectRatio: '614/306' }}>
+          {isValidImage ? (
             <Image
-              src={course.bannerImage.url}
+              src={imageUrl}
               alt={course.title}
               fill
-              sizes="(max-width: 640px) 100vw, (max-width: 768px) 50vw, (max-width: 1024px) 33vw, 25vw"
-              className="object-cover group-hover:scale-105 transition-transform duration-500"
+              className="object-cover transition-transform duration-300 group-hover:scale-[1.02]"
+              sizes="(max-width:640px) 100vw,
+                     (max-width:768px) 50vw,
+                     (max-width:1024px) 33vw,
+                     320px"
               priority={false}
             />
           ) : (
-            <div className="absolute inset-0 bg-[#016ab7] flex items-center justify-center">
-              <BookOpen className="h-12 w-12 text-white/50" />
+            <div className="absolute inset-0 flex items-center justify-center bg-[#016ab7]/5">
+              <BookOpen className="h-16 w-16 text-[#016ab7]/30" />
             </div>
           )}
         </div>
@@ -155,9 +165,8 @@ const CourseCard: React.FC<{
                 </span>
               )}
             </div>
-            <button className="flex-shrink-0 px-3 sm:px-4 py-1.5 sm:py-2 bg-[#016ab7] hover:bg-[#0158a0] hover:shadow-lg hover:shadow-[#016ab7]/25 text-white rounded-xl text-xs sm:text-sm font-medium transition-all hover:scale-105 flex items-center gap-1.5">
-              <ShoppingBag className="h-3 w-3 sm:h-3.5 sm:w-3.5" />
-              <span className="hidden xs:inline">Buy Now</span>
+            <button className="flex-shrink-0 px-4 sm:px-5 py-2 bg-[#016ab7] hover:bg-[#0158a0] hover:shadow-lg hover:shadow-[#016ab7]/25 text-white rounded-xl text-sm font-semibold transition-all duration-300 hover:scale-[1.02]">
+              Buy Now
             </button>
           </div>
         </div>
@@ -278,7 +287,7 @@ export default function CourseDiscoveryPage() {
           <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 sm:gap-6">
             {[1, 2, 3].map((i) => (
               <div key={i} className="bg-white rounded-2xl overflow-hidden shadow-sm animate-pulse">
-                <div className="w-full pt-[56.25%] bg-gray-200"></div>
+                <div className="w-full bg-gray-200" style={{ aspectRatio: '614/306' }}></div>
                 <div className="p-4 sm:p-5 space-y-3">
                   <div className="h-4 bg-gray-200 rounded w-1/4"></div>
                   <div className="h-6 bg-gray-200 rounded w-3/4"></div>

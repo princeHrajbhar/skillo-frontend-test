@@ -4,7 +4,7 @@ import type { BaseQueryFn, FetchArgs, FetchBaseQueryError } from '@reduxjs/toolk
 
 // Resolve the API base URL
 const resolveApiBaseUrl = (): string => {
-  const raw = (process.env.NEXT_PUBLIC_API_URL || 'https://skillo-backend-test.onrender.com/api/v1')
+  const raw = (process.env.NEXT_PUBLIC_API_URL || 'http://16.171.141.254:5000/api/v1')
     .trim()
     .replace(/\/+$/, '');
   return raw.endsWith('/api/v1') ? raw : `${raw}/api/v1`;
@@ -44,6 +44,7 @@ const baseQuery = fetchBaseQuery({
 // Track refresh state globally
 let isRefreshing = false;
 let refreshSubscribers: ((token: string) => void)[] = [];
+let refreshPromise: Promise<any> | null = null;
 
 // Subscribe to token refresh
 const subscribeTokenRefresh = (cb: (token: string) => void) => {
@@ -56,7 +57,41 @@ const onRefreshed = (token: string) => {
   refreshSubscribers = [];
 };
 
-// Helper to create a new fetch query with token and return a proper Promise
+// Helper to perform refresh
+const performRefresh = async (): Promise<string | null> => {
+  try {
+    const refreshBaseQuery = fetchBaseQuery({
+      baseUrl: API_BASE_URL,
+      credentials: 'include',
+    });
+
+    const refreshResult = await refreshBaseQuery(
+      {
+        url: '/auth/refresh',
+        method: 'POST',
+      },
+      {} as any,
+      {} as any
+    );
+
+    if (refreshResult.data) {
+      const responseData = refreshResult.data as any;
+      const newToken = responseData?.data?.accessToken;
+      
+      if (newToken && typeof window !== 'undefined') {
+        localStorage.setItem('accessToken', newToken);
+        document.cookie = `accessToken=${newToken}; path=/; max-age=86400; SameSite=Lax`;
+        return newToken;
+      }
+    }
+    return null;
+  } catch (error) {
+    console.error('❌ Refresh error:', error);
+    return null;
+  }
+};
+
+// Helper to create a new fetch query with token
 const createAuthenticatedQuery = async (token: string, args: string | FetchArgs): Promise<any> => {
   const authenticatedBaseQuery = fetchBaseQuery({
     baseUrl: API_BASE_URL,
@@ -69,7 +104,6 @@ const createAuthenticatedQuery = async (token: string, args: string | FetchArgs)
     },
   });
   
-  // Await the result to ensure we get a proper Promise
   return await authenticatedBaseQuery(args, {} as any, {} as any);
 };
 
@@ -79,19 +113,25 @@ const baseQueryWithReauth: BaseQueryFn<
   unknown,
   FetchBaseQueryError
 > = async (args, api, extraOptions) => {
-  // Skip refresh for login and refresh endpoints
+  // Check if we're on the client side
+  if (typeof window === 'undefined') {
+    return await baseQuery(args, api, extraOptions);
+  }
+
+  // Get token before making request
+  let token = getToken();
+  
+  // Don't attempt refresh for auth endpoints
   const isAuthEndpoint = typeof args === 'object' && 
     (args.url?.includes('/auth/login') || 
      args.url?.includes('/auth/refresh') ||
      args.url?.includes('/auth/logout'));
   
-  // Don't attempt refresh for auth endpoints
   if (isAuthEndpoint) {
     return await baseQuery(args, api, extraOptions);
   }
 
-  // Check if we have a token before making the request
-  const token = getToken();
+  // If no token, return 401 immediately
   if (!token) {
     console.log('⏭️ No token found, skipping request');
     return {
@@ -116,8 +156,20 @@ const baseQueryWithReauth: BaseQueryFn<
         subscribeTokenRefresh(async (newToken) => {
           console.log('🔄 Retrying with new token after refresh');
           try {
-            const retryResult = await createAuthenticatedQuery(newToken, args);
-            resolve(retryResult);
+            // Update the token in the request
+            const argsWithToken = args;
+            if (typeof argsWithToken === 'object' && argsWithToken !== null) {
+              // We need to reconstruct the request with new token
+              const retryResult = await createAuthenticatedQuery(newToken, argsWithToken);
+              resolve(retryResult);
+            } else {
+              resolve({
+                error: {
+                  status: 401,
+                  data: { message: 'Retry failed - invalid args' }
+                } as FetchBaseQueryError
+              });
+            }
           } catch (err) {
             resolve({
               error: {
@@ -134,90 +186,50 @@ const baseQueryWithReauth: BaseQueryFn<
     isRefreshing = true;
 
     try {
-      // Try to refresh the token
-      const refreshBaseQuery = fetchBaseQuery({
-        baseUrl: API_BASE_URL,
-        credentials: 'include',
-      });
-
-      const refreshResult = await refreshBaseQuery(
-        {
-          url: '/auth/refresh',
-          method: 'POST',
-        },
-        api,
-        extraOptions
-      );
-
-      if (refreshResult.data) {
+      // Perform refresh
+      const newToken = await performRefresh();
+      
+      if (newToken) {
         console.log('✅ Token refreshed successfully');
+        token = newToken;
+        onRefreshed(newToken);
         
-        const responseData = refreshResult.data as any;
-        const newToken = responseData?.data?.accessToken;
-        
-        if (newToken && typeof window !== 'undefined') {
-          // Store new token
-          localStorage.setItem('accessToken', newToken);
-          document.cookie = `accessToken=${newToken}; path=/; max-age=86400; SameSite=Lax`;
-          
-          // Notify subscribers
-          onRefreshed(newToken);
-          
-          // Retry the original request with the new token
-          result = await createAuthenticatedQuery(newToken, args);
-          console.log('🔄 Retry result:', result);
-        } else {
-          console.log('❌ No new token in refresh response');
-          clearAuthData();
-          isRefreshing = false;
-          redirectToLogin();
-          return {
-            error: {
-              status: 401,
-              data: { message: 'No new token received' }
-            } as FetchBaseQueryError
-          };
-        }
+        // Retry the original request with the new token
+        const retryResult = await createAuthenticatedQuery(newToken, args);
+        return retryResult;
       } else {
-        console.log('❌ Refresh failed');
+        console.log('❌ Refresh failed - no token received');
         clearAuthData();
-        isRefreshing = false;
-        redirectToLogin();
+        // Redirect to login
+        if (typeof window !== 'undefined' && !window.location.pathname.startsWith('/login')) {
+          window.location.href = '/login';
+        }
         return {
           error: {
             status: 401,
-            data: { message: 'Refresh failed' }
+            data: { message: 'Session expired - please login again' }
           } as FetchBaseQueryError
         };
       }
     } catch (error) {
       console.error('❌ Refresh error:', error);
       clearAuthData();
-      isRefreshing = false;
-      redirectToLogin();
+      if (typeof window !== 'undefined' && !window.location.pathname.startsWith('/login')) {
+        window.location.href = '/login';
+      }
       return {
         error: {
           status: 401,
-          data: { message: 'Refresh error' }
+          data: { message: 'Authentication failed' }
         } as FetchBaseQueryError
       };
     } finally {
       isRefreshing = false;
+      refreshPromise = null;
     }
   }
 
   return result;
-};
-
-// Helper to redirect to login
-const redirectToLogin = () => {
-  if (typeof window !== 'undefined') {
-    const pathname = window.location.pathname;
-    if (!pathname.startsWith('/login') && !pathname.startsWith('/register')) {
-      console.log('🔀 Redirecting to login page');
-      window.location.href = '/login';
-    }
-  }
 };
 
 // Create base API

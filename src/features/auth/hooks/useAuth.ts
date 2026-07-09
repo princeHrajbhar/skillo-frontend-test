@@ -44,6 +44,7 @@ export const useAuth = () => {
   const [isMounted, setIsMounted] = useState(false);
   const [authChecked, setAuthChecked] = useState(false);
   const [refreshFailed, setRefreshFailed] = useState(false);
+  const [retryCount, setRetryCount] = useState(0);
   
   const [refreshToken] = useRefreshTokenMutation();
   const [logoutMutation] = useLogoutMutation();
@@ -97,14 +98,12 @@ export const useAuth = () => {
     isError,
     isSuccess,
   } = useGetMeQuery(undefined, {
-    // Skip on server, on auth pages, or if no token
     skip: typeof window === 'undefined' ||
           !isMounted || 
           !authChecked ||
           isAuthPage || 
           !isProtectedPage ||
           isRefreshing ||
-          !getToken() ||
           refreshFailed,
     refetchOnFocus: true,
     refetchOnReconnect: true,
@@ -119,6 +118,7 @@ export const useAuth = () => {
       setRefreshAttempted(false);
       setRefreshFailed(false);
       setAuthChecked(true);
+      setRetryCount(0);
     }
   }, [data, isSuccess, dispatch, isMounted]);
 
@@ -139,14 +139,15 @@ export const useAuth = () => {
         const token = getToken();
         console.log('🔍 401 error - Token exists?', !!token, 'Refresh attempted?', refreshAttempted);
         
-        if (token && !refreshAttempted && !isRefreshing) {
+        if (token && !refreshAttempted && !isRefreshing && retryCount < 2) {
           console.log('🔄 401 error, attempting to refresh...');
+          setRetryCount(prev => prev + 1);
           handleRefreshToken();
-        } else if (refreshAttempted || !token) {
+        } else if (refreshAttempted || !token || retryCount >= 2) {
           console.log('❌ No token or refresh failed, redirecting to login...');
           clearAuthData();
           dispatch(logout());
-          if (typeof window !== 'undefined') {
+          if (typeof window !== 'undefined' && !window.location.pathname.startsWith('/login')) {
             window.location.href = '/login';
           }
         }
@@ -154,7 +155,7 @@ export const useAuth = () => {
         dispatch(setLoading(false));
       }
     }
-  }, [isError, queryError, dispatch, refreshAttempted, isRefreshing, isMounted, authChecked, isAuthPage, isProtectedPage]);
+  }, [isError, queryError, dispatch, refreshAttempted, isRefreshing, isMounted, authChecked, isAuthPage, isProtectedPage, retryCount]);
 
   // Set initialized when auth check is complete
   useEffect(() => {
@@ -201,12 +202,17 @@ export const useAuth = () => {
         // Refetch user data with new token
         await refetch();
         setRefreshFailed(false);
+        setRefreshAttempted(false);
+        setRetryCount(0);
         return true;
       } else {
         console.log('❌ No token in refresh response');
         setRefreshFailed(true);
         clearAuthData();
         dispatch(logout());
+        if (typeof window !== 'undefined' && !window.location.pathname.startsWith('/login')) {
+          window.location.href = '/login';
+        }
         return false;
       }
     } catch (error: any) {
@@ -215,7 +221,7 @@ export const useAuth = () => {
       clearAuthData();
       dispatch(logout());
       
-      if (isProtectedPage && typeof window !== 'undefined') {
+      if (isProtectedPage && typeof window !== 'undefined' && !window.location.pathname.startsWith('/login')) {
         window.location.href = '/login';
       }
       return false;

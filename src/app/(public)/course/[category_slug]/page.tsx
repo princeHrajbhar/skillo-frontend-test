@@ -242,64 +242,73 @@ export default function CategoryCoursesPage() {
           </div>
         ) : (
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-            {paginatedCourses.map((course) => (
-              <div 
-                key={course._id} 
-                className="group bg-white rounded-2xl border border-gray-200 shadow-sm hover:shadow-xl transition-all duration-300 overflow-hidden relative flex flex-col h-full"
-              >
-                <Link
-                  href={`/course/${course.category}/${course.slug}`}
-                  className="block flex flex-col h-full"
+            {paginatedCourses.map((course) => {
+              // Safe check for valid image URL
+              const imageUrl = course.bannerImage?.url;
+              const isValidImage = imageUrl && 
+                typeof imageUrl === 'string' &&
+                (imageUrl.startsWith('http://') || imageUrl.startsWith('https://'));
+
+              return (
+                <div 
+                  key={course._id} 
+                  className="group bg-white rounded-2xl border border-gray-200 shadow-sm hover:shadow-xl transition-all duration-300 overflow-hidden relative flex flex-col h-full"
                 >
-                  <div className="relative w-full pt-[56.25%] bg-gray-100 overflow-hidden flex-shrink-0">
-                    {course.bannerImage?.url ? (
-                      <Image
-                        src={course.bannerImage.url}
-                        alt={course.title}
-                        fill
-                        sizes="(max-width: 640px) 100vw, (max-width: 768px) 50vw, (max-width: 1024px) 33vw, 25vw"
-                        className="object-cover group-hover:scale-105 transition-transform duration-500"
-                        priority={false}
-                      />
-                    ) : (
-                      <div className="absolute inset-0 bg-[#016ab7] flex items-center justify-center">
-                        <BookOpen className="h-12 w-12 text-white/50" />
-                      </div>
-                    )}
-                  </div>
-                  <div className="p-5 flex flex-col flex-1">
-                    <h3 className="text-lg font-semibold text-gray-900 line-clamp-2 mb-2 group-hover:text-[#016ab7] transition-colors">
-                      {course.title}
-                    </h3>
-                    <p className="text-sm text-gray-500 line-clamp-2 mb-4 flex-1">
-                      {course.shortDescription}
-                    </p>
-                    <div className="flex items-center justify-between pt-4 border-t border-gray-100 mt-auto">
-                      <div className="flex items-center gap-2">
-                        {course.discountedPrice < course.price ? (
-                          <div className="flex items-center gap-1.5">
-                            <span className="text-lg font-bold text-[#016ab7]">
-                              {formatPrice(course.discountedPrice)}
-                            </span>
-                            <span className="text-xs text-gray-400 line-through">
+                  <Link
+                    href={`/course/${course.category}/${course.slug}`}
+                    className="block flex flex-col h-full"
+                  >
+                    {/* Image Container - 614x306 dimensions (landscape) */}
+                    <div className="relative w-full overflow-hidden rounded-t-2xl bg-[#016ab7]/5 flex-shrink-0" style={{ aspectRatio: '614/306' }}>
+                      {isValidImage ? (
+                        <Image
+                          src={imageUrl}
+                          alt={course.title}
+                          fill
+                          className="object-cover transition-transform duration-300 group-hover:scale-[1.02]"
+                          sizes="(max-width: 640px) 100vw, (max-width: 768px) 50vw, (max-width: 1024px) 33vw, 25vw"
+                          priority={false}
+                        />
+                      ) : (
+                        <div className="w-full h-full flex items-center justify-center">
+                          <BookOpen className="h-16 w-16 text-[#016ab7]/30" />
+                        </div>
+                      )}
+                    </div>
+                    <div className="p-5 flex flex-col flex-1">
+                      <h3 className="text-lg font-semibold text-gray-900 line-clamp-2 mb-2 group-hover:text-[#016ab7] transition-colors">
+                        {course.title}
+                      </h3>
+                      <p className="text-sm text-gray-500 line-clamp-2 mb-4 flex-1">
+                        {course.shortDescription}
+                      </p>
+                      <div className="flex items-center justify-between pt-4 border-t border-gray-100 mt-auto">
+                        <div className="flex items-center gap-2">
+                          {course.discountedPrice < course.price ? (
+                            <div className="flex items-center gap-1.5">
+                              <span className="text-lg font-bold text-[#016ab7]">
+                                {formatPrice(course.discountedPrice)}
+                              </span>
+                              <span className="text-xs text-gray-400 line-through">
+                                {formatPrice(course.price)}
+                              </span>
+                            </div>
+                          ) : (
+                            <span className="text-lg font-bold text-gray-900">
                               {formatPrice(course.price)}
                             </span>
-                          </div>
-                        ) : (
-                          <span className="text-lg font-bold text-gray-900">
-                            {formatPrice(course.price)}
-                          </span>
-                        )}
-                      </div>
-                      <div className="flex items-center gap-1 text-xs text-gray-400">
-                        <Clock className="h-3 w-3" />
-                        {formatDate(course.createdAt)}
+                          )}
+                        </div>
+                        <div className="flex items-center gap-1 text-xs text-gray-400">
+                          <Clock className="h-3 w-3" />
+                          {formatDate(course.createdAt)}
+                        </div>
                       </div>
                     </div>
-                  </div>
-                </Link>
-              </div>
-            ))}
+                  </Link>
+                </div>
+              );
+            })}
           </div>
         )}
 

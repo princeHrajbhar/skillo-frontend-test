@@ -109,7 +109,7 @@ const BlogListingPage = () => {
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
             {[...Array(6)].map((_, i) => (
               <div key={i} className="bg-white rounded-xl shadow-sm overflow-hidden animate-pulse">
-                <div className="h-48 bg-gray-200"></div>
+                <div className="w-full bg-gray-200" style={{ aspectRatio: '614/306' }}></div>
                 <div className="p-6 space-y-4">
                   <div className="h-6 bg-gray-200 rounded w-3/4"></div>
                   <div className="h-4 bg-gray-200 rounded w-full"></div>
@@ -290,69 +290,85 @@ const BlogListingPage = () => {
           </div>
         ) : (
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-            {paginatedBlogs.map((blog) => (
-              <Link
-                key={blog._id}
-                href={`/blog/${blog.category?.toLowerCase() || 'uncategorized'}/${blog.slug}`}
-                className="group bg-white rounded-2xl border border-gray-200 shadow-sm hover:shadow-xl transition-all duration-300 overflow-hidden hover:border-[#016ab7]/30"
-              >
-                {/* Image with fixed aspect ratio like course cards */}
-                <div className="relative w-full pt-[56.25%] bg-gray-100 overflow-hidden">
-                  {blog.banner?.url ? (
-                    <Image
-                      src={blog.banner.url}
-                      alt={blog.title}
-                      fill
-                      sizes="(max-width: 640px) 100vw, (max-width: 768px) 50vw, (max-width: 1024px) 33vw, 25vw"
-                      className="object-cover group-hover:scale-105 transition-transform duration-500"
-                      priority={false}
-                    />
-                  ) : (
-                    <div className="absolute inset-0 bg-[#016ab7] flex items-center justify-center">
-                      <BookOpenIcon className="h-12 w-12 text-white/50" />
-                    </div>
-                  )}
-                </div>
+            {paginatedBlogs.map((blog) => {
+              // Safe check for valid image URL
+              const imageUrl = blog.banner?.url;
+              const isValidImage = imageUrl && 
+                typeof imageUrl === 'string' &&
+                imageUrl.trim() !== '' &&
+                (imageUrl.startsWith('http://') || imageUrl.startsWith('https://'));
 
-                <div className="p-5">
-                  <h2 className="text-lg font-semibold text-gray-900 group-hover:text-[#016ab7] transition-colors mb-2 line-clamp-2">
-                    {blog.title}
-                  </h2>
-                  <p className="text-sm text-gray-500 line-clamp-2 mb-4">
-                    {blog.description}
-                  </p>
-
-                  <div className="flex items-center justify-between pt-4 border-t border-gray-100">
-                    <div className="flex items-center gap-3 text-xs text-gray-400">
-                      <span className="flex items-center">
-                        <CalendarIcon className="h-3.5 w-3.5 mr-1" />
-                        {formatDate(blog.postingDate || blog.createdAt)}
-                      </span>
-                      <span className="flex items-center">
-                        <UserIcon className="h-3.5 w-3.5 mr-1" />
-                        {blog.postedBy || 'Admin'}
-                      </span>
-                    </div>
+              return (
+                <Link
+                  key={blog._id}
+                  href={`/blog/${blog.category?.toLowerCase() || 'uncategorized'}/${blog.slug}`}
+                  className="group bg-white rounded-2xl border border-gray-200 shadow-sm hover:shadow-xl transition-all duration-300 overflow-hidden hover:border-[#016ab7]/30"
+                >
+                  {/* Image Container - 614x306 dimensions (landscape) */}
+                  <div className="relative w-full overflow-hidden flex-shrink-0" style={{ aspectRatio: '614/306' }}>
+                    {isValidImage ? (
+                      <Image
+                        src={imageUrl}
+                        alt={blog.title}
+                        fill
+                        className="object-cover transition-transform duration-300 group-hover:scale-[1.02]"
+                        sizes="(max-width: 640px) 100vw, (max-width: 768px) 50vw, (max-width: 1024px) 33vw, 25vw"
+                        priority={false}
+                      />
+                    ) : (
+                      <div className="absolute inset-0 flex items-center justify-center bg-[#016ab7]/5">
+                        <BookOpenIcon className="h-16 w-16 text-[#016ab7]/30" />
+                      </div>
+                    )}
                   </div>
 
-                  {blog.keyword && blog.keyword.length > 0 && (
-                    <div className="mt-3 flex flex-wrap gap-1.5">
-                      {blog.keyword.slice(0, 3).map((tag) => (
-                        <span
-                          key={tag}
-                          className="bg-gray-100 text-gray-600 text-[10px] px-2 py-0.5 rounded-full"
-                        >
-                          #{tag}
+                  <div className="p-5">
+                    {/* Category Badge */}
+                    {blog.category && (
+                      <span className="inline-block text-xs font-medium text-[#016ab7] mb-1">
+                        {blog.category}
+                      </span>
+                    )}
+
+                    <h2 className="text-lg font-semibold text-gray-900 group-hover:text-[#016ab7] transition-colors mb-2 line-clamp-2">
+                      {blog.title}
+                    </h2>
+                    <p className="text-sm text-gray-500 line-clamp-2 mb-4">
+                      {blog.description}
+                    </p>
+
+                    <div className="flex items-center justify-between pt-4 border-t border-gray-100">
+                      <div className="flex items-center gap-3 text-xs text-gray-400">
+                        <span className="flex items-center">
+                          <CalendarIcon className="h-3.5 w-3.5 mr-1" />
+                          {formatDate(blog.postingDate || blog.createdAt)}
                         </span>
-                      ))}
-                      {blog.keyword.length > 3 && (
-                        <span className="text-gray-400 text-[10px]">+{blog.keyword.length - 3}</span>
-                      )}
+                        <span className="flex items-center">
+                          <UserIcon className="h-3.5 w-3.5 mr-1" />
+                          {blog.postedBy || 'Admin'}
+                        </span>
+                      </div>
                     </div>
-                  )}
-                </div>
-              </Link>
-            ))}
+
+                    {blog.keyword && blog.keyword.length > 0 && (
+                      <div className="mt-3 flex flex-wrap gap-1.5">
+                        {blog.keyword.slice(0, 3).map((tag) => (
+                          <span
+                            key={tag}
+                            className="bg-gray-100 text-gray-600 text-[10px] px-2 py-0.5 rounded-full"
+                          >
+                            #{tag}
+                          </span>
+                        ))}
+                        {blog.keyword.length > 3 && (
+                          <span className="text-gray-400 text-[10px]">+{blog.keyword.length - 3}</span>
+                        )}
+                      </div>
+                    )}
+                  </div>
+                </Link>
+              );
+            })}
           </div>
         )}
 

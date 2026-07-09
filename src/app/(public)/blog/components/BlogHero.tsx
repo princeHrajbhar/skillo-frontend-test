@@ -23,7 +23,7 @@ const slides = [
       'Discover the latest developments in AI, Web3, cloud computing, and software architecture.',
   },
   {
-    image: 'https://images.unsplash.com/photo-1455390582262-044c277dead?w=800',
+    image: 'https://images.unsplash.com/photo-1499750310107-5fef28a66643?w=800',
     badge: '💡 In-Depth Guides',
     title: 'Build Your',
     highlight: 'Developer Knowledge Base',

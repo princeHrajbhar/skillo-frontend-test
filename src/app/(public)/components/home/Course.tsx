@@ -162,24 +162,32 @@ export default function CourseListing() {
                 ? calculateDiscount(course.price, course.discountedPrice as number) 
                 : 0;
 
-              const imageUrl = course.bannerImage?.url || 
-                              'https://images.unsplash.com/photo-1633356122102-3fe601e05bd2?w=800';
+              // Check if image URL is valid
+              const isValidImage = course.bannerImage?.url && 
+                (course.bannerImage.url.startsWith('http://') || 
+                 course.bannerImage.url.startsWith('https://'));
 
               return (
                 <div
                   key={course._id}
                   className="group overflow-hidden rounded-xl border border-slate-200 bg-white transition-all duration-300 hover:-translate-y-1 hover:shadow-lg"
                 >
-                  {/* Image with proper Next.js Image component */}
-                  <div className="relative w-full pt-[56.25%] bg-gray-100 overflow-hidden">
-                    <Image
-                      src={imageUrl}
-                      alt={course.title}
-                      fill
-                      sizes="(max-width: 640px) 100vw, (max-width: 768px) 50vw, (max-width: 1024px) 33vw, 25vw"
-                      className="object-cover group-hover:scale-105 transition-transform duration-500"
-                      priority={false}
-                    />
+                  {/* Image with 614:306 aspect ratio (landscape) */}
+                  <div className="relative w-full overflow-hidden rounded-t-xl bg-[#016ab7]/5" style={{ aspectRatio: '614/306' }}>
+                    {isValidImage ? (
+                      <Image
+                        src={course.bannerImage.url}
+                        alt={course.title}
+                        fill
+                        className="object-cover transition-transform duration-300 group-hover:scale-[1.02]"
+                        sizes="(max-width: 640px) 100vw, (max-width: 768px) 50vw, (max-width: 1024px) 33vw, 25vw"
+                        priority={false}
+                      />
+                    ) : (
+                      <div className="absolute inset-0 flex items-center justify-center">
+                        <BookOpen className="h-16 w-16 text-[#016ab7]/30" />
+                      </div>
+                    )}
                   </div>
 
                   {/* Content */}

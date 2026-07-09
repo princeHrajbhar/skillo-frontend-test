@@ -75,7 +75,7 @@ const CategoryBlogPage = () => {
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
             {[...Array(6)].map((_, i) => (
               <div key={i} className="bg-white rounded-xl shadow-sm overflow-hidden animate-pulse">
-                <div className="h-48 bg-gray-200"></div>
+                <div className="w-full bg-gray-200" style={{ aspectRatio: '614/306' }}></div>
                 <div className="p-6 space-y-4">
                   <div className="h-6 bg-gray-200 rounded w-3/4"></div>
                   <div className="h-4 bg-gray-200 rounded w-full"></div>
@@ -176,77 +176,89 @@ const CategoryBlogPage = () => {
           </div>
         ) : (
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
-            {currentBlogs.map((blog) => (
-              <Link
-                key={blog._id}
-                href={`/blog/${blog.category?.toLowerCase() || 'uncategorized'}/${blog.slug}`}
-                className="group bg-white rounded-xl shadow-sm hover:shadow-xl transition-all duration-300 overflow-hidden border border-gray-100 hover:border-blue-200"
-              >
-                <div className="relative h-56 overflow-hidden bg-gray-100">
-                  {blog.banner?.url ? (
-                    <Image
-                      src={blog.banner.url}
-                      alt={blog.title}
-                      fill
-                      className="object-cover group-hover:scale-105 transition-transform duration-500"
-                    />
-                  ) : (
-                    <div className="w-full h-full bg-gradient-to-br from-blue-400 to-purple-500 flex items-center justify-center">
-                      <span className="text-white text-5xl font-bold">📄</span>
-                    </div>
-                  )}
-                  
-                  {/* Category Badge */}
-                  <div className="absolute top-4 left-4">
-                    <span className="bg-white/90 backdrop-blur-sm text-blue-700 text-xs font-medium px-3 py-1 rounded-full shadow-sm">
-                      {blog.category}
-                    </span>
-                  </div>
-                </div>
+            {currentBlogs.map((blog) => {
+              // Safe check for valid image URL
+              const imageUrl = blog.banner?.url;
+              const isValidImage = imageUrl && 
+                typeof imageUrl === 'string' &&
+                imageUrl.trim() !== '' &&
+                (imageUrl.startsWith('http://') || imageUrl.startsWith('https://'));
 
-                <div className="p-6">
-                  <h2 className="text-xl font-bold text-gray-900 group-hover:text-blue-600 transition-colors mb-2 line-clamp-2">
-                    {blog.title}
-                  </h2>
-                  <p className="text-gray-600 text-sm line-clamp-3 mb-4 leading-relaxed">
-                    {blog.description}
-                  </p>
-
-                  <div className="flex flex-wrap items-center justify-between text-sm text-gray-500">
-                    <div className="flex items-center space-x-4">
-                      <span className="flex items-center">
-                        <CalendarIcon className="h-4 w-4 mr-1" />
-                        {blog.postingDate
-                          ? format(new Date(blog.postingDate), 'MMM d, yyyy')
-                          : format(new Date(blog.createdAt), 'MMM d, yyyy')}
-                      </span>
-                      <span className="flex items-center">
-                        <UserIcon className="h-4 w-4 mr-1" />
-                        {blog.postedBy || 'Admin'}
+              return (
+                <Link
+                  key={blog._id}
+                  href={`/blog/${blog.category?.toLowerCase() || 'uncategorized'}/${blog.slug}`}
+                  className="group bg-white rounded-xl shadow-sm hover:shadow-xl transition-all duration-300 overflow-hidden border border-gray-100 hover:border-blue-200"
+                >
+                  {/* Image Container - 614x306 dimensions (landscape) */}
+                  <div className="relative w-full overflow-hidden flex-shrink-0" style={{ aspectRatio: '614/306' }}>
+                    {isValidImage ? (
+                      <Image
+                        src={imageUrl}
+                        alt={blog.title}
+                        fill
+                        className="object-cover transition-transform duration-300 group-hover:scale-[1.02]"
+                        sizes="(max-width: 640px) 100vw, (max-width: 768px) 50vw, (max-width: 1024px) 33vw, 25vw"
+                        priority={false}
+                      />
+                    ) : (
+                      <div className="absolute inset-0 flex items-center justify-center bg-[#016ab7]/5">
+                        <BookOpenIcon className="h-16 w-16 text-[#016ab7]/30" />
+                      </div>
+                    )}
+                    
+                    {/* Category Badge */}
+                    <div className="absolute top-4 left-4 z-10">
+                      <span className="bg-white/90 backdrop-blur-sm text-blue-700 text-xs font-medium px-3 py-1 rounded-full shadow-sm">
+                        {blog.category}
                       </span>
                     </div>
                   </div>
 
-                  {blog.keyword && blog.keyword.length > 0 && (
-                    <div className="mt-3 flex flex-wrap gap-2">
-                      {blog.keyword.slice(0, 3).map((tag) => (
-                        <span
-                          key={tag}
-                          className="bg-gray-100 text-gray-600 text-xs px-2.5 py-1 rounded-full hover:bg-gray-200 transition-colors"
-                        >
-                          #{tag}
+                  <div className="p-6">
+                    <h2 className="text-xl font-bold text-gray-900 group-hover:text-blue-600 transition-colors mb-2 line-clamp-2">
+                      {blog.title}
+                    </h2>
+                    <p className="text-gray-600 text-sm line-clamp-3 mb-4 leading-relaxed">
+                      {blog.description}
+                    </p>
+
+                    <div className="flex flex-wrap items-center justify-between text-sm text-gray-500">
+                      <div className="flex items-center space-x-4">
+                        <span className="flex items-center">
+                          <CalendarIcon className="h-4 w-4 mr-1" />
+                          {blog.postingDate
+                            ? format(new Date(blog.postingDate), 'MMM d, yyyy')
+                            : format(new Date(blog.createdAt), 'MMM d, yyyy')}
                         </span>
-                      ))}
-                      {blog.keyword.length > 3 && (
-                        <span className="text-gray-400 text-xs flex items-center">
-                          +{blog.keyword.length - 3} more
+                        <span className="flex items-center">
+                          <UserIcon className="h-4 w-4 mr-1" />
+                          {blog.postedBy || 'Admin'}
                         </span>
-                      )}
+                      </div>
                     </div>
-                  )}
-                </div>
-              </Link>
-            ))}
+
+                    {blog.keyword && blog.keyword.length > 0 && (
+                      <div className="mt-3 flex flex-wrap gap-2">
+                        {blog.keyword.slice(0, 3).map((tag) => (
+                          <span
+                            key={tag}
+                            className="bg-gray-100 text-gray-600 text-xs px-2.5 py-1 rounded-full hover:bg-gray-200 transition-colors"
+                          >
+                            #{tag}
+                          </span>
+                        ))}
+                        {blog.keyword.length > 3 && (
+                          <span className="text-gray-400 text-xs flex items-center">
+                            +{blog.keyword.length - 3} more
+                          </span>
+                        )}
+                      </div>
+                    )}
+                  </div>
+                </Link>
+              );
+            })}
           </div>
         )}
 

@@ -25,6 +25,7 @@ import {
   DollarSign
 } from 'lucide-react';
 import { useCourse } from '../../../../features/course/hooks/useCourse';
+import Image from 'next/image';
 
 export default function CoursesPage() {
   const router = useRouter();
@@ -180,6 +181,12 @@ export default function CoursesPage() {
 
   // Use filtered courses for display
   const displayCourses = filteredCourses;
+
+  // Helper function to check if image URL is valid
+  const isValidImageUrl = (url: string | undefined) => {
+    if (!url) return false;
+    return url.startsWith('http://') || url.startsWith('https://');
+  };
 
   return (
     <div className="space-y-6">
@@ -422,118 +429,137 @@ export default function CoursesPage() {
                   </tr>
                 </thead>
                 <tbody className="divide-y divide-gray-100">
-                  {displayCourses.map((course) => (
-                    <tr key={course._id} className="hover:bg-gray-50/50 transition-colors group">
-                      <td className="px-4 py-3.5">
-                        <div className="flex items-center gap-3 min-w-[180px]">
-                          {course.bannerImage?.url ? (
-                            <div className="w-10 h-10 rounded-lg overflow-hidden flex-shrink-0 bg-gray-100">
-                              <img 
-                                src={course.bannerImage.url} 
-                                alt={course.title}
-                                className="w-full h-full object-cover"
-                              />
-                            </div>
-                          ) : (
-                            <div className="w-10 h-10 rounded-lg bg-gradient-to-br from-teal-100 to-cyan-100 flex items-center justify-center flex-shrink-0">
-                              <BookOpen className="w-5 h-5 text-teal-600" />
-                            </div>
-                          )}
-                          <div className="min-w-0">
-                            <p className="text-sm font-semibold text-gray-900 group-hover:text-teal-600 transition-colors line-clamp-1">
-                              {course.title}
-                              {searchQuery.trim() && (
-                                <span className="ml-2 text-xs font-normal text-teal-600">
-                                  (match)
-                                </span>
-                              )}
-                            </p>
-                            <div className="flex flex-wrap gap-1 mt-1">
-                              {course.keywords?.slice(0, 2).map((tag, i) => (
-                                <span key={i} className="inline-flex items-center gap-0.5 text-xs bg-gray-100 text-gray-600 px-2 py-0.5 rounded">
-                                  <Tag className="w-2.5 h-2.5" />
-                                  {tag}
-                                </span>
-                              ))}
-                              {course.keywords && course.keywords.length > 2 && (
-                                <span className="text-xs text-gray-400">+{course.keywords.length - 2}</span>
-                              )}
+                  {displayCourses.map((course) => {
+                    // Check if image URL is valid
+                    const imageUrl = course.bannerImage?.url;
+                    const hasValidImage = imageUrl && isValidImageUrl(imageUrl);
+
+                    return (
+                      <tr key={course._id} className="hover:bg-gray-50/50 transition-colors group">
+                        <td className="px-4 py-3.5">
+                          <div className="flex items-center gap-3 min-w-[180px]">
+                            {hasValidImage ? (
+                              <div className="relative w-10 h-10 rounded-lg overflow-hidden flex-shrink-0 bg-gray-100">
+                                <img 
+                                  src={imageUrl} 
+                                  alt={course.title}
+                                  className="w-full h-full object-cover"
+                                  onError={(e) => {
+                                    // If image fails to load, show icon instead
+                                    const target = e.target as HTMLImageElement;
+                                    target.style.display = 'none';
+                                    // Show the fallback icon
+                                    const parent = target.parentElement;
+                                    if (parent) {
+                                      const iconDiv = document.createElement('div');
+                                      iconDiv.className = 'w-full h-full flex items-center justify-center bg-gradient-to-br from-teal-100 to-cyan-100';
+                                      iconDiv.innerHTML = '<svg class="w-5 h-5 text-teal-600" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 6.253v13m0-13C10.832 5.477 9.246 5 7.5 5S4.168 5.477 3 6.253v13C4.168 18.477 5.754 18 7.5 18s3.332.477 4.5 1.253m0-13C13.168 5.477 14.754 5 16.5 5c1.747 0 3.332.477 4.5 1.253v13C19.832 18.477 18.247 18 16.5 18c-1.746 0-3.332.477-4.5 1.253"/></svg>';
+                                      parent.appendChild(iconDiv);
+                                    }
+                                  }}
+                                />
+                              </div>
+                            ) : (
+                              <div className="w-10 h-10 rounded-lg bg-gradient-to-br from-teal-100 to-cyan-100 flex items-center justify-center flex-shrink-0">
+                                <BookOpen className="w-5 h-5 text-teal-600" />
+                              </div>
+                            )}
+                            <div className="min-w-0">
+                              <p className="text-sm font-semibold text-gray-900 group-hover:text-teal-600 transition-colors line-clamp-1">
+                                {course.title}
+                                {searchQuery.trim() && (
+                                  <span className="ml-2 text-xs font-normal text-teal-600">
+                                    (match)
+                                  </span>
+                                )}
+                              </p>
+                              <div className="flex flex-wrap gap-1 mt-1">
+                                {course.keywords?.slice(0, 2).map((tag, i) => (
+                                  <span key={i} className="inline-flex items-center gap-0.5 text-xs bg-gray-100 text-gray-600 px-2 py-0.5 rounded">
+                                    <Tag className="w-2.5 h-2.5" />
+                                    {tag}
+                                  </span>
+                                ))}
+                                {course.keywords && course.keywords.length > 2 && (
+                                  <span className="text-xs text-gray-400">+{course.keywords.length - 2}</span>
+                                )}
+                              </div>
                             </div>
                           </div>
-                        </div>
-                      </td>
-                      <td className="px-4 py-3.5 hidden sm:table-cell">
-                        <span className="text-sm text-gray-600 bg-gray-50 px-2.5 py-1 rounded-lg whitespace-nowrap">
-                          {course.category}
-                        </span>
-                        {course.subCategory && (
-                          <span className="text-xs text-gray-400 ml-1 whitespace-nowrap">
-                            / {course.subCategory}
+                        </td>
+                        <td className="px-4 py-3.5 hidden sm:table-cell">
+                          <span className="text-sm text-gray-600 bg-gray-50 px-2.5 py-1 rounded-lg whitespace-nowrap">
+                            {course.category}
                           </span>
-                        )}
-                      </td>
-                      <td className="px-4 py-3.5 hidden lg:table-cell">
-                        <div className="flex flex-col">
-                          <span className="text-sm font-medium text-gray-900 whitespace-nowrap">
-                            {formatPrice(course.price, course.currency)}
-                          </span>
-                          {course.discountedPrice > 0 && course.discountedPrice < course.price && (
-                            <span className="text-xs text-emerald-600 whitespace-nowrap">
-                              {formatPrice(course.discountedPrice, course.currency)}
+                          {course.subCategory && (
+                            <span className="text-xs text-gray-400 ml-1 whitespace-nowrap">
+                              / {course.subCategory}
                             </span>
                           )}
-                        </div>
-                      </td>
-                      <td className="px-4 py-3.5 hidden md:table-cell">
-                        <span className={`inline-flex items-center gap-1.5 text-xs px-2.5 py-1.5 rounded-full whitespace-nowrap ${getStatusColor(course.status)}`}>
-                          {getStatusIcon(course.status)}
-                          {course.status.charAt(0).toUpperCase() + course.status.slice(1)}
-                        </span>
-                      </td>
-                      <td className="px-4 py-3.5 hidden xl:table-cell">
-                        <div className="flex items-center gap-1.5 text-sm text-gray-500 whitespace-nowrap">
-                          <Calendar className="w-3.5 h-3.5 flex-shrink-0" />
-                          {formatDate(course.createdAt)}
-                        </div>
-                      </td>
-                      <td className="px-4 py-3.5">
-                        <div className="flex items-center justify-end gap-1">
-                          <button 
-                            onClick={() => handleViewCourse(course._id)}
-                            className="p-1.5 hover:bg-blue-50 rounded-lg transition-colors text-gray-400 hover:text-blue-600"
-                            title="View Course"
-                          >
-                            <Eye className="w-4 h-4" />
-                          </button>
-                          <button 
-                            onClick={() => handleEditCourse(course._id)}
-                            className="p-1.5 hover:bg-teal-50 rounded-lg transition-colors text-gray-400 hover:text-teal-600"
-                            title="Edit Course"
-                          >
-                            <Edit className="w-4 h-4" />
-                          </button>
-                          <button 
-                            onClick={() => handleDelete(course._id)}
-                            disabled={deletingId === course._id}
-                            className="p-1.5 hover:bg-red-50 rounded-lg transition-colors text-gray-400 hover:text-red-600 disabled:opacity-50 disabled:cursor-not-allowed"
-                            title="Delete Course"
-                          >
-                            {deletingId === course._id ? (
-                              <Loader2 className="w-4 h-4 animate-spin" />
-                            ) : (
-                              <Trash2 className="w-4 h-4" />
+                        </td>
+                        <td className="px-4 py-3.5 hidden lg:table-cell">
+                          <div className="flex flex-col">
+                            <span className="text-sm font-medium text-gray-900 whitespace-nowrap">
+                              {formatPrice(course.price, course.currency)}
+                            </span>
+                            {course.discountedPrice > 0 && course.discountedPrice < course.price && (
+                              <span className="text-xs text-emerald-600 whitespace-nowrap">
+                                {formatPrice(course.discountedPrice, course.currency)}
+                              </span>
                             )}
-                          </button>
-                          <button 
-                            className="p-1.5 hover:bg-gray-100 rounded-lg transition-colors text-gray-400"
-                            title="More Options"
-                          >
-                            <MoreHorizontal className="w-4 h-4" />
-                          </button>
-                        </div>
-                      </td>
-                    </tr>
-                  ))}
+                          </div>
+                        </td>
+                        <td className="px-4 py-3.5 hidden md:table-cell">
+                          <span className={`inline-flex items-center gap-1.5 text-xs px-2.5 py-1.5 rounded-full whitespace-nowrap ${getStatusColor(course.status)}`}>
+                            {getStatusIcon(course.status)}
+                            {course.status.charAt(0).toUpperCase() + course.status.slice(1)}
+                          </span>
+                        </td>
+                        <td className="px-4 py-3.5 hidden xl:table-cell">
+                          <div className="flex items-center gap-1.5 text-sm text-gray-500 whitespace-nowrap">
+                            <Calendar className="w-3.5 h-3.5 flex-shrink-0" />
+                            {formatDate(course.createdAt)}
+                          </div>
+                        </td>
+                        <td className="px-4 py-3.5">
+                          <div className="flex items-center justify-end gap-1">
+                            <button 
+                              onClick={() => handleViewCourse(course._id)}
+                              className="p-1.5 hover:bg-blue-50 rounded-lg transition-colors text-gray-400 hover:text-blue-600"
+                              title="View Course"
+                            >
+                              <Eye className="w-4 h-4" />
+                            </button>
+                            <button 
+                              onClick={() => handleEditCourse(course._id)}
+                              className="p-1.5 hover:bg-teal-50 rounded-lg transition-colors text-gray-400 hover:text-teal-600"
+                              title="Edit Course"
+                            >
+                              <Edit className="w-4 h-4" />
+                            </button>
+                            <button 
+                              onClick={() => handleDelete(course._id)}
+                              disabled={deletingId === course._id}
+                              className="p-1.5 hover:bg-red-50 rounded-lg transition-colors text-gray-400 hover:text-red-600 disabled:opacity-50 disabled:cursor-not-allowed"
+                              title="Delete Course"
+                            >
+                              {deletingId === course._id ? (
+                                <Loader2 className="w-4 h-4 animate-spin" />
+                              ) : (
+                                <Trash2 className="w-4 h-4" />
+                              )}
+                            </button>
+                            <button 
+                              className="p-1.5 hover:bg-gray-100 rounded-lg transition-colors text-gray-400"
+                              title="More Options"
+                            >
+                              <MoreHorizontal className="w-4 h-4" />
+                            </button>
+                          </div>
+                        </td>
+                      </tr>
+                    );
+                  })}
                 </tbody>
               </table>
             </div>
